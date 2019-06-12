@@ -1,7 +1,7 @@
 # Deploy Example:
 ## Register Avro Schema & Push data on Kafka bus Via REST API 
 
-#Build Scala Jar
+# Build Scala Jar
 ````
 sbt assembly
 ````
