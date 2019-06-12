@@ -6,21 +6,21 @@ import scala.io.Source
 object Deploy {
 
   def main(args: Array[String] ): Unit = {
-
+    val path= args(0)//"C:/files/workspace_spark/streaming-jobs-workflow/"
     val conf = ConfigFactory.load() //load application.conf by default
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
-    val dirSchema = conf.getString("schemas.folder")
+    val dirSchema = path + conf.getString("schemas.folder")
 
     val ipTopics = conf.getString("topics.host-ip")
     val portTopics = conf.getInt("topics.host-port")
-    val dirTopics = conf.getString("topics.folder")
+    val dirTopics = path + conf.getString("topics.folder")
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //##############Register Schema #################
     val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
-    schemaRegistered.foreach(println)
+    //schemaRegistered.foreach(println)
 
     //##############Publish Topics #################
     //Once Schema is registered, push topics on Kafka:
@@ -35,15 +35,15 @@ object Deploy {
     //Get List of topics on Kafka
     val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
     val topicsOnKafkaArray = transformHTTPGetOutputStringToArray(topicsOnKafkaString)
-    topicsOnKafkaArray.foreach(println)
+    //topicsOnKafkaArray.foreach(println)
+
     //Make the diff
-
     val diffExtraSchemaToBeRegistered = schemaRegistered.keySet.diff(topicsOnKafkaArray.toSet)
-    println("diff1: "+diffExtraSchemaToBeRegistered)
+    println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
     val diffExtraTopicOnKafka = topicsOnKafkaArray.toSet.diff(schemaRegistered.keySet)
-    println("diff2: "+diffExtraTopicOnKafka)
+    println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
 
-    println(listFilesTopicsFromRepo)
+    println("List of topics file on repository: " + listFilesTopicsFromRepo)
     //TODO Need to improve parsing of yml file. Basic parsing right now
     val mapTopicConf= listFilesTopicsFromRepo.map( x => (x.getName.replace(".yml",""), readFileTopic(x.toString))).toMap
 
@@ -61,7 +61,7 @@ object Deploy {
 
     //if topics already exist check if properties are the same, if yes nothing to do, else update AddPartition only allowed for now
     val updateTopicIfChangeList = schemaRegistered.keySet.intersect(topicsOnKafkaArray.toSet)
-    println(updateTopicIfChangeList)
+   // println(updateTopicIfChangeList)
     //check number of partition in Kafka
     //Compare with number of partition in topic.yml file
     //if the same do nothing
@@ -84,7 +84,7 @@ object Deploy {
     val listDirSchemas = getListOfDir(dirSchema)
     val schemas_states= populateSubjects(listDirSchemas)
     var schemasStatesWanted = schemas_states
-    println("///Schema_states: "+schemas_states)
+    //println("///Schema_states: "+schemas_states)
     var mapSubjectVersionRepo = schemas_states.map(x => (x._1,x._2.map(v=>v._1).toList))
 
     val listSchemaRepoPresent =mapSubjectVersionRepo.map(x => if(x._2.length!=0){x._1}else {
@@ -120,24 +120,24 @@ object Deploy {
       mapSubjectVersionKafka = listSubjectVersionKafka.map(x => (x._1, x._2.map(_.toInt)))
     }
 
-    println("KAFKA: List of subject and version: " + mapSubjectVersionKafka) //Map[String, List[Int]]
+    //println("KAFKA: List of subject and version: " + mapSubjectVersionKafka) //Map[String, List[Int]]
 
     //Extra in Repo
     val diffExtraRepo : Map[String, List[Int]] = mapSubjectVersionRepo -- mapSubjectVersionKafka.keySet
-    println("Extra in Repo: " + diffExtraRepo)
+    //println("Extra in Repo: " + diffExtraRepo)
 
     //Extra in Kafka
     val diffExtraKafka : Map[String, List[Int]] = mapSubjectVersionKafka -- mapSubjectVersionRepo.keySet
-    println("Extra in Kafka: " + diffExtraKafka)
+    //println("Extra in Kafka: " + diffExtraKafka)
 
     //Delete any subject extra in kafka
     diffExtraKafka.foreach( x=>httpDeletetSchemaRegistryAndAllVersion( x._1, ip, port ) )
 
     //Post any subject extra in Repo  to Kafka
-    println("Access Map:" + schemas_states("product"))
+   // println("Access Map:" + schemas_states("product"))
     schemasStatesWanted.foreach( x=> httpPostSchemaRegistryForEachVersion(x._1,x._2,ip,port) )
 
-    println("Schema State Wanted: " + schemasStatesWanted)
+    //println("Schema State Wanted: " + schemasStatesWanted)
     schemasStatesWanted
   }
 
@@ -155,7 +155,8 @@ object Deploy {
         .postData(postData)
         .asString
 
-      println("Http request post response:" +response)
+      println("Posting schema registry for subject: "+ subject)
+      println("Http request post response: " +response)
       response
     }
 
@@ -163,7 +164,7 @@ object Deploy {
       val response = Http(s"http://${ip}:${port}/subjects/${subject}/")
         .method("DELETE")
         .asString
-
+      println("Delete schema registry and all version of: " + subject)
       println("Http request delete response:" +response)
       response
     }

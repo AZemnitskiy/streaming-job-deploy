@@ -1,7 +1,17 @@
 # Deploy Example:
- ## Register Avro Schema & Push data on Kafka bus Via REST API 
+## Register Avro Schema & Push data on Kafka bus Via REST API 
+
+#Build Scala Jar
+````
+sbt assembly
+````
+
+# Run Example
+````
+java -jar .\Deploy-assembly-0.1.jar "C:/files/workspace_spark/streaming-jobs-workflow/"
+````
  
- # Schema Registration 
+# Schema Registration 
  
  Run SchemaRegistryTest.scala to test Schema registration.
 
