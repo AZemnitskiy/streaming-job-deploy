@@ -33,7 +33,7 @@ class CreateTopicsTest extends FunSuite {
     Deploy.createOrUpdateTopics( ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
     val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
-    assert(topicString.contains("customer"))
+    assert(topicString.contains("user.customer"))
   }
 
 }

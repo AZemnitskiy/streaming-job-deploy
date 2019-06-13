@@ -77,7 +77,30 @@ object Deploy {
     //if the same do nothing
     //if different update the number of partition
 
+    //Delete topic if topic file is not there
+    //ENFORCE A USER CONVENTION FOR TOPICS
+    //uSER.CUSTOMER -> NAME OF TOPIC, IF NOT THERE, DELETE
+    //TODO TopicToDelete is wrong!!! delete too many files beauce of the new notation user.customer for tpic, it thinks topic is customer line 54
+    val topicToDelete = diffExtraTopicOnKafka.filter( x=> x.contains("user."))
+    val topicName= "user.product"
+    topicToDelete.foreach( x=>httpDeletetTopic( ipTopics, portTopicsKafkaManager, clusterName, x))
   }
+
+  def httpDeletetTopic( ipTopics:String, portTopicsKafkaManager:Int, clusterName:String, topicName: String ): HttpResponse[String] = {
+    val response = Http(s"http://${ipTopics}:${portTopicsKafkaManager.toString}/clusters/${clusterName}/topics/delete?t=${topicName}")
+      .postForm
+      .param("topic",topicName)
+      .asString
+
+    if(response.code == 200) {
+      println("SUCCESS: Delete topic: " + topicName)
+    }else{
+      println("FAILURE: Did not succeed to delete \""+topicName+"\"")
+      println(response.body)
+    }
+    response
+  }
+
   //Check the folder topics/mytopic.yml verify that a schema has been registered in schemas/mytopic/mytopic.v1.yml
   //if yes, register the new schema to Kafka registry
   //If not it send an error message : “Missing schema file for this topic in schemas folder”
@@ -176,7 +199,7 @@ object Deploy {
       }else{
         if(response.code == 409){
           println("FAILURE: Issue to post subject: " + subject + ". Error message below.")
-          print("FAILURE: "+response.body)
+          println("FAILURE: "+response.body)
         }else{
         println("FAILURE: Issue to post subject: " + subject)
         }
@@ -188,6 +211,7 @@ object Deploy {
       val response = Http(s"http://${ip}:${port}/subjects/${subject}/")
         .method("DELETE")
         .asString
+
       if (response.code == 200) {
         println("Delete schema registry and all version of: " + subject)
         //println("Http request delete response:" + response)
