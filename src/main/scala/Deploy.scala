@@ -38,6 +38,7 @@ object Deploy {
   }
 
   case class TopicsConf( ip: String, portTopicsKafkaManager: Int, port: Int, folder: String, cluster: String, zkHosts: String, kafkaVersion: String)
+  case class SchemasConf( ip: String, port: Int, dirSchema: String)
 
 
   def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
@@ -49,11 +50,11 @@ object Deploy {
 
     //Make the diff
     val diffExtraSchemaToBeRegistered = schemaRegistered.keySet.diff(topicsOnKafkaArray.toSet)
-    println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
+    //println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
     val diffExtraTopicOnKafka = topicsOnKafkaArray.toSet.diff(schemaRegistered.keySet)
-    println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
+    //println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
 
-    println("List of topics file on repository: " + listFilesTopicsFromRepo)
+   // println("List of topics file on repository: " + listFilesTopicsFromRepo)
     //TODO Need to improve parsing of yml file. Basic parsing right now
     val mapTopicConf= listFilesTopicsFromRepo.map( x => (x.getName.replace(".yml",""), readFileTopic(x.toString))).toMap
 
@@ -105,15 +106,20 @@ object Deploy {
     val listRepoToCompareTopics = listSchemaRepoPresent.map(x => x.toString).filter( x=> x!="()")
     val diffExtraSchema = listRepoToCompareTopics.toSet.diff(listTopics.toSet)
     val diffTopicWithNoSchema = listTopics.toSet.diff(listRepoToCompareTopics.toSet)
-    if (diffTopicWithNoSchema.size>0){throw new Exception("Missing schema file for some topics in schemas folder")}
+
+    if (diffTopicWithNoSchema.size>0){
+      println("ERROR: Missing schema file for these topics:")
+      diffTopicWithNoSchema.foreach(println)
+      throw new Exception("Missing Schema for these topic")
+    }
     if (diffExtraSchema.size>0){
       println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
       diffExtraSchema.foreach( x => mapSubjectVersionRepo = mapSubjectVersionRepo.filterKeys(_!=x))
       diffExtraSchema.foreach( x => schemasStatesWanted = schemasStatesWanted.filterKeys(_!=x))
 
     }
-    println("REPO: List of subject and version: " + mapSubjectVersionRepo)
-    println("REPO: List of subject and version and content: " + schemasStatesWanted)
+    //println("REPO: List of subject and version: " + mapSubjectVersionRepo)
+    //println("REPO: List of subject and version and content: " + schemasStatesWanted)
 
     //KAFKA
     //list subject Kafka
@@ -164,8 +170,17 @@ object Deploy {
         .postData(postData)
         .asString
 
-      println("Posting schema registry for subject: "+ subject)
-      println("Http request post response: " +response)
+      if(response.code == 200) {
+        println("SUCCESS: Posting schema registry for subject: " + subject)
+       // println("Http request post response: " + response)
+      }else{
+        if(response.code == 409){
+          println("FAILURE: Issue to post subject: " + subject + ". Error message below.")
+          print("FAILURE: "+response.body)
+        }else{
+        println("FAILURE: Issue to post subject: " + subject)
+        }
+      }
       response
     }
 
@@ -173,8 +188,11 @@ object Deploy {
       val response = Http(s"http://${ip}:${port}/subjects/${subject}/")
         .method("DELETE")
         .asString
-      println("Delete schema registry and all version of: " + subject)
-      println("Http request delete response:" +response)
+      if (response.code == 200) {
+        println("Delete schema registry and all version of: " + subject)
+        //println("Http request delete response:" + response)
+      }else
+      {println("FAILURE: Issue to delete subject: " +subject)}
       response
     }
 
@@ -279,6 +297,14 @@ object Deploy {
       response = httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
 
     }
+
+    if(response.code == 200)
+    {
+      println("SUCCESS: Creation on Kafka of topic :" + topic )
+    }else{
+      println("FAILURE: Issue to create on kafka topic:" + topic)
+    }
+
 
     response
   }

@@ -7,22 +7,24 @@ class SchemaRegistryTest extends FunSuite {
   val pathCreating = System.getProperty("user.dir")+File.separator+ "src"+File.separator+"test"+File.separator+"resources"+File.separator+"streaming-job-workflow"
   val path= pathCreating.replaceAll("\\\\","/")
 
-  test("SchemaRegistry.MissingSchemaTopicsYMLPresent") {
-    //Added topics shampoo.yml,but no schema file for it
-    val conf = ConfigFactory.load()
-    val ip = conf.getString("schemas.host-ip")
-    val port = conf.getInt("schemas.host-port")
-    val dirSchema = s"${path}/missing-schema-for-topics/schemas"//conf.getString("schemas.folder")
-    val dirTopics = s"${path}/missing-schema-for-topics/topics"
-    val caught =
-      intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.registerSchema( ip, port, dirSchema, dirTopics)
-      }
-
-    assert(caught.getMessage== "Missing schema file for some topics in schemas folder")
-  }
+//  test("SchemaRegistry.MissingSchemaTopicsYMLPresent") {
+//    println("MissingSchemaTopicsYMLPresent")
+//    //Added topics shampoo.yml,but no schema file for it
+//    val conf = ConfigFactory.load()
+//    val ip = conf.getString("schemas.host-ip")
+//    val port = conf.getInt("schemas.host-port")
+//    val dirSchema = s"${path}/missing-schema-for-topics/schemas"//conf.getString("schemas.folder")
+//    val dirTopics = s"${path}/missing-schema-for-topics/topics"
+//    val caught =
+//      intercept[Exception] { // Result type: IndexOutOfBoundsException
+//        Deploy.registerSchema( ip, port, dirSchema, dirTopics)
+//      }
+//    println("")
+//    assert(caught.getMessage== "Missing Schema for these topic")
+//  }
 
   test("SchemaRegistry.ExtraSchemaNoTopicsYMLAssociated") {
+    println("ExtraSchemaNoTopicsYMLAssociated")
     //ExtraSchemaNoTopicsYMLAssociated, in this case schema is not register on Kafka
     //Product schema is present, but no product.yml in topics
     val conf = ConfigFactory.load()

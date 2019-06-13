@@ -28,7 +28,7 @@ class CreateTopicsTest extends FunSuite {
 
     val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
     val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
-    schemaRegistered.foreach(println)
+    //schemaRegistered.foreach(println)
 
     Deploy.createOrUpdateTopics( ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
