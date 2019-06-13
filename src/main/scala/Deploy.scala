@@ -6,8 +6,11 @@ import scala.io.Source
 object Deploy {
 
   def main(args: Array[String] ): Unit = {
-    val path= "C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
-    val conf = ConfigFactory.load() //load application.conf by default
+    val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
+
+    val myConfigFile = new File(args(0))//"C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf"
+    val conf = ConfigFactory.parseFile(myConfigFile)
+
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
     val dirSchema = path + conf.getString("schemas.folder")
