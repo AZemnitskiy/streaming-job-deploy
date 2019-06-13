@@ -37,6 +37,9 @@ object Deploy {
 
   }
 
+  case class TopicsConf( ip: String, portTopicsKafkaManager: Int, port: Int, folder: String, cluster: String, zkHosts: String, kafkaVersion: String)
+
+
   def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka

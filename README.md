@@ -1,6 +1,12 @@
 # Deploy Example:
 ## Register Avro Schema & Push data on Kafka bus Via REST API 
 
+
+git clone
+cd into deploy
+
+Put docker-compose
+
 # Build Scala Jar
 ````
 sbt assembly

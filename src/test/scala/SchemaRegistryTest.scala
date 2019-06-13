@@ -1,8 +1,11 @@
+import java.io.File
+
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
 
 class SchemaRegistryTest extends FunSuite {
-  val path ="C:/files/workspace_spark/Deploy/src/test/scala/streaming-job-workflow"
+  val pathCreating = System.getProperty("user.dir")+File.separator+ "src"+File.separator+"test"+File.separator+"resources"+File.separator+"streaming-job-workflow"
+  val path= pathCreating.replaceAll("\\\\","/")
 
   test("SchemaRegistry.MissingSchemaTopicsYMLPresent") {
     //Added topics shampoo.yml,but no schema file for it

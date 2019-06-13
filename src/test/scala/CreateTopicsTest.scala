@@ -1,9 +1,12 @@
+import java.io.File
+
 import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
 
 class CreateTopicsTest extends FunSuite {
-  val path ="C:/files/workspace_spark/Deploy/src/test/scala/streaming-job-workflow"
+  val pathCreating = System.getProperty("user.dir")+File.separator+ "src"+File.separator+"test"+File.separator+"resources"+File.separator+"streaming-job-workflow"
+  val path= pathCreating.replaceAll("\\\\","/")
 
   test("Topic.CreateTopic") {
     //Create a topic "customer" that is not already on Kafka
