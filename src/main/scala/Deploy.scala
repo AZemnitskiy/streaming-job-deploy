@@ -20,6 +20,8 @@ object Deploy {
     val portTopics = conf.getInt("topics.host-port")
     val dirTopics = path + conf.getString("topics.folder")
     val clusterName = conf.getString("topics.cluster")
+    val zkHosts = conf.getString("topics.zkHosts")
+    val kafkaVersion = conf.getString("topics.kafkaVersion")
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
@@ -31,11 +33,11 @@ object Deploy {
     //Once Schema is registered, push topics on Kafka:
     //-if topics already exist update it
     //-if new topics, publish it
-    createOrUpdateTopics( ipTopics, portTopicsKafkaManager,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    createOrUpdateTopics( ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
   }
 
-  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka
     val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:${portTopics}/topics/").mkString
@@ -59,7 +61,7 @@ object Deploy {
         val topicName = x._2("topic")
         val partitions = x._2("partitions").toInt
         val replications = x._2("replication-factor").toInt
-        httpCreateTopicsOnKafka(ipTopics, portTopicsKafkaManager, clusterName, topicName, partitions, replications)
+        httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
       })
     }
 
@@ -257,7 +259,28 @@ object Deploy {
     subjectArray
   }
 
-  def httpCreateTopicsOnKafka(ip: String, port: Int,clusterName: String, topic: String, partitions: Int, replication: Int) : HttpResponse[String] ={
+  def httpCreateTopicsOnKafkaAndCheckClusterExist(ip: String, port: Int, zkHosts: String, kafkaVersion: String,  clusterName: String, topic: String, partitions: Int, replication: Int) : HttpResponse[String] ={
+    var response= httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
+
+    if (response.toString.contains("Unknown cluster")) {
+      println(s"Cluster ${clusterName} is not existing. We just created it")
+      //Create Cluster
+      val responseCluster = Http(s"http://${ip}:${port}/clusters")
+        .postForm
+        .param("name",clusterName)
+        .param("zkHosts",zkHosts)//"zookeeper:2181"
+        .param("kafkaVersion",kafkaVersion)//"0.9.0.1"
+        .asString
+
+      //then post (create topic)
+      response = httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
+
+    }
+
+    response
+  }
+
+  def httpCreateTopicsOnKafka(ip: String, port: Int, clusterName: String, topic: String, partitions: Int, replication: Int) : HttpResponse[String] = {
     val response = Http(s"http://${ip}:${port}/clusters/${clusterName}/topics/create")
       .postForm
       .param("partitions", partitions.toString)
