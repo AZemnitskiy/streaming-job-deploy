@@ -19,6 +19,7 @@ object Deploy {
     val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
     val dirTopics = path + conf.getString("topics.folder")
+    val clusterName = conf.getString("topics.cluster")
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
@@ -30,11 +31,11 @@ object Deploy {
     //Once Schema is registered, push topics on Kafka:
     //-if topics already exist update it
     //-if new topics, publish it
-    createOrUpdateTopics( ipTopics, portTopicsKafkaManager,portTopics, dirSchema, dirTopics, listFilesTopicsFromRepo, schemaRegistered)
+    createOrUpdateTopics( ipTopics, portTopicsKafkaManager,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
   }
 
-  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int,portTopics: Int, dirSchema: String, dirTopics: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka
     val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:${portTopics}/topics/").mkString
@@ -55,7 +56,6 @@ object Deploy {
     val mapNewTopicToCreatOnKafka = mapTopicConf.filterNot(x => x._1.contains(diffExtraSchemaToBeRegistered))
     if (mapNewTopicToCreatOnKafka.keySet.size!=0) {
       mapNewTopicToCreatOnKafka.foreach(x => {
-        val clusterName = x._2("cluster")
         val topicName = x._2("topic")
         val partitions = x._2("partitions").toInt
         val replications = x._2("replication-factor").toInt

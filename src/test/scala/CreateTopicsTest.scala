@@ -14,6 +14,7 @@ class CreateTopicsTest extends FunSuite {
     val ipTopics = conf.getString("topics.host-ip")
     val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
+    val clusterName = conf.getString("topics.cluster")
 
     val dirSchema = s"${path}/extra-schema-no-topics/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
@@ -24,7 +25,7 @@ class CreateTopicsTest extends FunSuite {
     val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
     schemaRegistered.foreach(println)
 
-    Deploy.createOrUpdateTopics( ipTopics, portTopicsKafkaManager, portTopics, dirSchema, dirTopics, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics( ipTopics, portTopicsKafkaManager, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
     val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
     assert(topicString.contains("customer"))

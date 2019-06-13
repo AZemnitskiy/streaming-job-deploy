@@ -7,9 +7,34 @@ sbt assembly
 ````
 
 # Run Example
+java -jar .\Deploy-assembly-0.1.jar productionConferFilePath FolderLocation
 ````
-java -jar .\Deploy-assembly-0.1.jar "C:/files/workspace_spark/streaming-jobs-workflow/"
+java -jar .\Deploy-assembly-0.1.jar "C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf" "C:/files/workspace_spark/streaming-jobs-workflow/"
 ````
+ 
+Example of prod.conf file:
+````
+schemas : {
+  host-ip: "192.168.99.100"
+  host-port: 8081
+  folder: "schemas"
+}
+
+topics : {
+  host-ip: "192.168.99.100"
+  host-port-kafka-manager: 8004
+  host-port: 8084
+  folder: "topics"
+  cluster: "cluster-kafka"
+}
+
+jobs : {
+  host-ip: "192.168.99.100"
+  host-port: 8083
+  folder: "topics"
+}
+````
+ 
  
 # Schema Registration 
  
