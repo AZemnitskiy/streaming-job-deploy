@@ -6,13 +6,14 @@ import scala.io.Source
 object Deploy {
 
   def main(args: Array[String] ): Unit = {
-    val path= args(0)//"C:/files/workspace_spark/streaming-jobs-workflow/"
+    val path= "C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
     val conf = ConfigFactory.load() //load application.conf by default
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
     val dirSchema = path + conf.getString("schemas.folder")
 
     val ipTopics = conf.getString("topics.host-ip")
+    val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
     val dirTopics = path + conf.getString("topics.folder")
 
@@ -26,14 +27,14 @@ object Deploy {
     //Once Schema is registered, push topics on Kafka:
     //-if topics already exist update it
     //-if new topics, publish it
-    createOrUpdateTopics( ipTopics, portTopics, dirSchema, dirTopics, listFilesTopicsFromRepo, schemaRegistered)
+    createOrUpdateTopics( ipTopics, portTopicsKafkaManager,portTopics, dirSchema, dirTopics, listFilesTopicsFromRepo, schemaRegistered)
 
   }
 
-  def createOrUpdateTopics( ipTopics: String, portTopics: Int, dirSchema: String, dirTopics: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int,portTopics: Int, dirSchema: String, dirTopics: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka
-    val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:${portTopics}/topics/").mkString
     val topicsOnKafkaArray = transformHTTPGetOutputStringToArray(topicsOnKafkaString)
     //topicsOnKafkaArray.foreach(println)
 
@@ -55,7 +56,7 @@ object Deploy {
         val topicName = x._2("topic")
         val partitions = x._2("partitions").toInt
         val replications = x._2("replication-factor").toInt
-        httpCreateTopicsOnKafka(ipTopics, portTopics, clusterName, topicName, partitions, replications)
+        httpCreateTopicsOnKafka(ipTopics, portTopicsKafkaManager, clusterName, topicName, partitions, replications)
       })
     }
 
