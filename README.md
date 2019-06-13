@@ -7,7 +7,7 @@ sbt assembly
 ````
 
 # Run Example
-java -jar .\Deploy-assembly-0.1.jar productionConferFilePath FolderLocation
+java -jar .\Deploy-assembly-0.1.jar productionConfigFilePath FolderLocation
 ````
 java -jar .\Deploy-assembly-0.1.jar "C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf" "C:/files/workspace_spark/streaming-jobs-workflow/"
 ````
@@ -25,7 +25,9 @@ topics : {
   host-port-kafka-manager: 8004
   host-port: 8084
   folder: "topics"
-  cluster: "cluster-kafka"
+  cluster: "myCluster"
+  zkHosts:"zookeeper:2181"
+  kafkaVersion: "0.9.0.1"
 }
 
 jobs : {
