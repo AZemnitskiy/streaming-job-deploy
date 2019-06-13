@@ -1,13 +1,25 @@
 # Deploy Example:
 ## Register Avro Schema & Push data on Kafka bus Via REST API 
 
+We are assuming that Kafka, Zookeeper are already running.
 
-git clone
-cd into deploy
+````
+docker-compose -f docker-compose.yml up
+````
 
-Put docker-compose
+Clone the project.
+````
+git clone "https://github.com/AZemnitskiy/streaming-job-deploy.git" 
+````
+
+Then go to the project.
+````
+cd ./Deploy
+````
+
 
 # Build Scala Jar
+Build jar
 ````
 sbt assembly
 ````
