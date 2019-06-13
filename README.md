@@ -27,7 +27,7 @@ sbt assembly
 # Run Example
 java -jar .\Deploy-assembly-0.1.jar productionConfigFilePath FolderLocation
 ````
-java -jar .\Deploy-assembly-0.1.jar "C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf" "C:/files/workspace_spark/streaming-jobs-workflow/"
+java -jar .\Deploy-assembly-0.1.jar "your/path/prod.conf" "your/path/streaming-jobs-workflow/"
 ````
  
 Example of prod.conf file:
