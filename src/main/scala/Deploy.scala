@@ -139,7 +139,7 @@ object Deploy {
     if (diffTopicWithNoSchema.size>0){
       println("ERROR: Missing schema file for these topics:")
       diffTopicWithNoSchema.foreach(println)
-      throw new Exception("Missing Schema for these topic")
+      throw new Exception("Missing Schema for topics")
     }
     if (diffExtraSchema.size>0){
       println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
