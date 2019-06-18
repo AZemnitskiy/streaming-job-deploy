@@ -10,12 +10,17 @@ import scala.io.Source
 
 object Deploy {
 
+  val usage = """
+    Usage: mmlaln [--conf application.conf]
+  """
+
   def main(args: Array[String] ): Unit = {
-    val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
+    //val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
 
     val myConfigFile = new File(args(0))//"C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf"
     val conf = ConfigFactory.parseFile(myConfigFile)
 
+    val path = conf.getString("target.folder")
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
     val dirSchema = path + conf.getString("schemas.folder")
@@ -271,10 +276,10 @@ object Deploy {
 
   def readFile(fileName: String): String =
   {
-    val fileContents = null
+    var fileContents = ""
     val source= Source.fromFile(fileName)
     try {
-      val fileContents = source.getLines.mkString
+      fileContents = source.getLines.mkString
       fileContents
     //}catch {
       //case e: FileNotFoundException => println("Couldn't find that file.")
