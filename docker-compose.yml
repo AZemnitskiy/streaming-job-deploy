@@ -1,5 +1,4 @@
-
-version: '2'
+version: '3.3'
 services:
   zookeeper:
     image: "confluentinc/cp-zookeeper:4.1.0"
@@ -115,7 +114,19 @@ services:
       - "9000:9000"
     environment:
       ZK_HOSTS: 'zookeeper:2181'
-      APPLICATION_SECRET: 'letmein'   
+      APPLICATION_SECRET: 'letmein'
+
+  kafka-manager-ui:
+    image: sheepkiller/kafka-manager
+    depends_on:
+      - zookeeper
+      - broker-1
+    ports:
+      - "8004:9000"
+    environment:
+      ZK_HOSTS: 'zookeeper:2181'
+      APPLICATION_SECRET: 'letmein'
+      KM_ARGS: -Djava.net.preferIPv4Stack=true
 
   connect-ui:
     image: landoop/kafka-connect-ui
