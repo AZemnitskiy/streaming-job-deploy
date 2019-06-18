@@ -4,7 +4,5 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/test/resources/streaming-job-workflow/extra-schema-no-topics" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/test/resources/streaming-job-workflow/missing-schema-for-topics" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/test/scala/streaming-job-workflow/extra-schema-no-topics" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/src/test/scala/streaming-job-workflow/missing-schema-for-topics" vcs="Git" />
   </component>
 </project>
