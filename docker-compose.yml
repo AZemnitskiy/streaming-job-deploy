@@ -20,8 +20,8 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_BROKER_RACK: rack-a
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://192.168.99.100:9092'
+      KAFKA_ADVERTISED_HOST_NAME: ${DOCKER_HOST_IP}
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${DOCKER_HOST_IP}:9092'
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_DELETE_TOPIC_ENABLE: "true"
       KAFKA_JMX_PORT: 9999
@@ -88,7 +88,7 @@ services:
     ports:
       - "8084:8084"
     environment:
-      KAFKA_REST_ZOOKEEPER_CONNECT: '192.168.99.100:2181'
+      KAFKA_REST_ZOOKEEPER_CONNECT: '${DOCKER_HOST_IP}:2181'
       KAFKA_REST_LISTENERS: 'http://0.0.0.0:8084'
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema_registry:8081'
       KAFKA_REST_HOST_NAME: 'rest-proxy'
@@ -147,7 +147,7 @@ services:
     ports:
       - "8002:8000"
     environment:
-      SCHEMAREGISTRY_URL: 'http://192.168.99.100:8081'
+      SCHEMAREGISTRY_URL: 'http://${DOCKER_HOST_IP}:8081'
 
   topics-ui:
     image: landoop/kafka-topics-ui
@@ -173,7 +173,7 @@ services:
     # The reason we check for readiness here is that we can insert a sleep time
     # for topic creation before we start the application.
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b 192.168.99.100:9092 1 20 && \
+                       cub kafka-ready -b ${DOCKER_HOST_IP} 1 20 && \
                        echo Waiting for Confluent Schema Registry to be ready... && \
                        cub sr-ready schema_registry 8081 20 && \
                        echo Waiting a few seconds for topic creation to finish... && \
@@ -181,7 +181,7 @@ services:
                        /usr/bin/ksql-server-start /etc/ksql/ksql-server.properties'"
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_OPTS: "-Dbootstrap.servers=192.168.99.100:9092 -Dksql.schema.registry.url=http://schema_registry:8081 -Dlisteners=http://0.0.0.0:8088"
+      KSQL_OPTS: "-Dbootstrap.servers=${DOCKER_HOST_IP}:9092 -Dksql.schema.registry.url=http://schema_registry:8081 -Dlisteners=http://0.0.0.0:8088"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
 
     extra_hosts:

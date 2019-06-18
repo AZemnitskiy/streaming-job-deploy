@@ -15,7 +15,7 @@ object Deploy {
   """
 
   def main(args: Array[String] ): Unit = {
-    val myConfigFile = new File(args(0))//"C:/files/prod.conf"
+    val myConfigFile = new File(args(0))
     val conf = ConfigFactory.parseFile(myConfigFile)
 
     val path = conf.getString("target.folder")
@@ -74,14 +74,20 @@ object Deploy {
     //println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
     
     //if new topics, push
-    val mapNewTopicToCreatOnKafka = mapTopicConf.filterNot(x => x._1.contains(diffExtraSchemaToBeRegistered))
-    if (mapNewTopicToCreatOnKafka.keySet.size!=0) {
-      mapNewTopicToCreatOnKafka.foreach(x => {
-        val topicName = x._2("topic")
-        val partitions = x._2("partitions").toInt
-        val replications = x._2("replication-factor").toInt
-        httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
-      })
+    if(diffExtraSchemaToBeRegistered.size!=0){
+      val mapNewTopicToCreatOnKafka = mapTopicConf.filterNot(x => x._1.contains(diffExtraSchemaToBeRegistered))
+      if (mapNewTopicToCreatOnKafka.keySet.size!=0) {
+        mapNewTopicToCreatOnKafka.foreach(x => {
+          val topicName = x._2("topic")
+          val partitions = x._2("partitions").toInt
+          val replications = x._2("replication-factor").toInt
+          httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
+        })
+      }
+    }else
+    {
+      println("Topics already on Kafka:")
+      topicRepoToBeRegistered.foreach(x => print(s"${x} "))
     }
 
     //if topics already exist check if properties are the same, if yes nothing to do, else update AddPartition only allowed for now
@@ -332,7 +338,6 @@ object Deploy {
 
       //then post (create topic)
       response = httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
-
     }
 
     if(response.code == 200)
@@ -343,8 +348,6 @@ object Deploy {
       val message = jget(parseJson, "message")
       println(s"FAILURE: Cannot create topic on Kafka ${'"'}${topic}${'"'} : ${message}")
     }
-
-
     response
   }
 
