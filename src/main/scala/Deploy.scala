@@ -11,13 +11,11 @@ import scala.io.Source
 object Deploy {
 
   val usage = """
-    Usage: mmlaln [--conf application.conf]
+    Usage: deploy application.conf
   """
 
   def main(args: Array[String] ): Unit = {
-    //val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
-
-    val myConfigFile = new File("C:/files/prod.conf")//new File(args(0))//"C:/files/prod.conf"
+    val myConfigFile = new File(args(0))//"C:/files/prod.conf"
     val conf = ConfigFactory.parseFile(myConfigFile)
 
     val path = conf.getString("target.folder")
@@ -32,7 +30,7 @@ object Deploy {
     val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
     val dirTopic1 =  new File(conf.getString("topics.folder"))
-    val dirTopics = (pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
+    val dirTopics = (pathFolder.getPath + File.separator + dirTopic1.getPath).replaceAll("\\\\","/")
     val clusterName = conf.getString("topics.cluster")
     val zkHosts = conf.getString("topics.zkHosts")
     val kafkaVersion = conf.getString("topics.kafkaVersion")
