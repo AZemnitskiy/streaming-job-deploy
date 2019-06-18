@@ -10,6 +10,10 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.4.1"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
+libraryDependencies += "com.persist" % "persist-json_2.12" % "1.2.0"
+
+test in assembly := {}
+
 assemblyMergeStrategy in assembly := {
   case m if m.toLowerCase.endsWith("manifest.mf")            => MergeStrategy.discard
   case m if m.toLowerCase.matches("meta-inf.*\\.sf$") => MergeStrategy.discard

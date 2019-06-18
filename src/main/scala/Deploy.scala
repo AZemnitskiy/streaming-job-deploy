@@ -1,7 +1,12 @@
-import com.typesafe.config.ConfigFactory
 import java.io.File
+
+import com.persist.JsonOps._
+import com.typesafe.config.ConfigFactory
 import scalaj.http.{Http, HttpResponse}
+
 import scala.io.Source
+
+
 
 object Deploy {
 
@@ -48,16 +53,19 @@ object Deploy {
     val topicsOnKafkaArray = transformHTTPGetOutputStringToArray(topicsOnKafkaString)
     //topicsOnKafkaArray.foreach(println)
 
-    //Make the diff
-    val diffExtraSchemaToBeRegistered = schemaRegistered.keySet.diff(topicsOnKafkaArray.toSet)
-    //println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
-    val diffExtraTopicOnKafka = topicsOnKafkaArray.toSet.diff(schemaRegistered.keySet)
-    //println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
+   
 
    // println("List of topics file on repository: " + listFilesTopicsFromRepo)
     //TODO Need to improve parsing of yml file. Basic parsing right now
     val mapTopicConf= listFilesTopicsFromRepo.map( x => (x.getName.replace(".yml",""), readFileTopic(x.toString))).toMap
+    val topicRepoToBeRegistered =mapTopicConf.map(x=> x._2("topic")).toArray
 
+    //Make the diff
+    val diffExtraSchemaToBeRegistered = topicRepoToBeRegistered.toSet.diff(topicsOnKafkaArray.toSet)
+    //println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
+    val diffExtraTopicOnKafka = topicsOnKafkaArray.toSet.diff(topicRepoToBeRegistered.toSet)
+    //println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
+    
     //if new topics, push
     val mapNewTopicToCreatOnKafka = mapTopicConf.filterNot(x => x._1.contains(diffExtraSchemaToBeRegistered))
     if (mapNewTopicToCreatOnKafka.keySet.size!=0) {
@@ -80,9 +88,8 @@ object Deploy {
     //Delete topic if topic file is not there
     //ENFORCE A USER CONVENTION FOR TOPICS
     //uSER.CUSTOMER -> NAME OF TOPIC, IF NOT THERE, DELETE
-    //TODO TopicToDelete is wrong!!! delete too many files beauce of the new notation user.customer for tpic, it thinks topic is customer line 54
+    //TODO TopicToDelete is wrong!!! delete too many files because of the new notation user.customer for topic, it thinks topic is customer line 54
     val topicToDelete = diffExtraTopicOnKafka.filter( x=> x.contains("user."))
-    val topicName= "user.product"
     topicToDelete.foreach( x=>httpDeletetTopic( ipTopics, portTopicsKafkaManager, clusterName, x))
   }
 
@@ -96,7 +103,8 @@ object Deploy {
       println("SUCCESS: Delete topic: " + topicName)
     }else{
       println("FAILURE: Did not succeed to delete \""+topicName+"\"")
-      println(response.body)
+      val parseJson =Json(response.body)
+      println("FAILURE: "+ jget(parseJson, "message"))
     }
     response
   }
@@ -133,7 +141,7 @@ object Deploy {
     if (diffTopicWithNoSchema.size>0){
       println("ERROR: Missing schema file for these topics:")
       diffTopicWithNoSchema.foreach(println)
-      throw new Exception("Missing Schema for these topic")
+      throw new Exception("Missing Schema for topics")
     }
     if (diffExtraSchema.size>0){
       println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
@@ -199,9 +207,12 @@ object Deploy {
       }else{
         if(response.code == 409){
           println("FAILURE: Issue to post subject: " + subject + ". Error message below.")
-          println("FAILURE: "+response.body)
+          val parseJson =Json(response.body)
+          println("FAILURE: "+ jget(parseJson, "message"))
         }else{
         println("FAILURE: Issue to post subject: " + subject)
+          val parseJson =Json(response.body)
+          println("FAILURE: "+ jget(parseJson, "message"))
         }
       }
       response
@@ -216,8 +227,11 @@ object Deploy {
         println("Delete schema registry and all version of: " + subject)
         //println("Http request delete response:" + response)
       }else
-      {println("FAILURE: Issue to delete subject: " +subject)}
-      response
+      {
+        println("FAILURE: Issue to delete subject: " +subject)}
+        val parseJson =Json(response.body)
+        println("FAILURE: "+ jget(parseJson, "message"))
+        response
     }
 
 
@@ -285,6 +299,7 @@ object Deploy {
     val fileContents = null
     val source= Source.fromFile(fileName)
     try {
+      //val regex2 = """(?s)(.*)//""".r
       val t = source.getLines.map(_.replaceAll("\\s", "").replaceAll("\"", "").split(":"))
       val res=t.map( x => (x(0),x(1))).toMap
       res
@@ -327,6 +342,8 @@ object Deploy {
       println("SUCCESS: Creation on Kafka of topic :" + topic )
     }else{
       println("FAILURE: Issue to create on kafka topic:" + topic)
+      val parseJson =Json(response.body)
+      println("FAILURE: "+ jget(parseJson, "message"))
     }
 
 
