@@ -10,20 +10,29 @@ import scala.io.Source
 
 object Deploy {
 
-  def main(args: Array[String] ): Unit = {
-    val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
+  val usage = """
+    Usage: mmlaln [--conf application.conf]
+  """
 
-    val myConfigFile = new File(args(0))//"C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf"
+  def main(args: Array[String] ): Unit = {
+    //val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
+
+    val myConfigFile = new File("C:/files/prod.conf")//new File(args(0))//"C:/files/prod.conf"
     val conf = ConfigFactory.parseFile(myConfigFile)
 
+    val path = conf.getString("target.folder")
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
-    val dirSchema = path + conf.getString("schemas.folder")
+
+    val pathFolder = new File(path)
+    val dirSchema1 =  new File(conf.getString("schemas.folder"))
+    val dirSchema =( pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
 
     val ipTopics = conf.getString("topics.host-ip")
     val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
-    val dirTopics = path + conf.getString("topics.folder")
+    val dirTopic1 =  new File(conf.getString("topics.folder"))
+    val dirTopics = (pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
     val clusterName = conf.getString("topics.cluster")
     val zkHosts = conf.getString("topics.zkHosts")
     val kafkaVersion = conf.getString("topics.kafkaVersion")
@@ -100,11 +109,11 @@ object Deploy {
       .asString
 
     if(response.code == 200) {
-      println("SUCCESS: Delete topic: " + topicName)
+      println(s"SUCCESS: Delete topic ${'"'}${topicName}${'"'} ")
     }else{
-      println("FAILURE: Did not succeed to delete \""+topicName+"\"")
       val parseJson =Json(response.body)
-      println("FAILURE: "+ jget(parseJson, "message"))
+      val message = jget(parseJson, "message")
+      println(s"FAILURE: Cannot delete topic ${'"'}${topicName}${'"'} : ${message}")
     }
     response
   }
@@ -202,18 +211,11 @@ object Deploy {
         .asString
 
       if(response.code == 200) {
-        println("SUCCESS: Posting schema registry for subject: " + subject)
-       // println("Http request post response: " + response)
+        println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'}")
       }else{
-        if(response.code == 409){
-          println("FAILURE: Issue to post subject: " + subject + ". Error message below.")
-          val parseJson =Json(response.body)
-          println("FAILURE: "+ jget(parseJson, "message"))
-        }else{
-        println("FAILURE: Issue to post subject: " + subject)
-          val parseJson =Json(response.body)
-          println("FAILURE: "+ jget(parseJson, "message"))
-        }
+        val parseJson =Json(response.body)
+        val message =jget(parseJson, "message")
+        println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'}: ${message} ")
       }
       response
     }
@@ -224,20 +226,18 @@ object Deploy {
         .asString
 
       if (response.code == 200) {
-        println("Delete schema registry and all version of: " + subject)
-        //println("Http request delete response:" + response)
+        println(s"Delete schema registry and all version of: ${'"'}${subject}${'"'}")
+        response
       }else
       {
-        println("FAILURE: Issue to delete subject: " +subject)}
         val parseJson =Json(response.body)
-        println("FAILURE: "+ jget(parseJson, "message"))
+        val message =jget(parseJson, "message")
+        println(s"FAILURE: Cannot delete subject ${'"'}${subject}${'"'}: ${message} ")
         response
+      }
     }
 
 
-  //go to folder and list all folder inside folder
-  //foreach folder go inside it and get all the file
-  //Case class subject , another one version
 /*
   case class VersionContent(json: String)
   case class SubjectValue( version: Map[Int, VersionContent])
@@ -280,10 +280,10 @@ object Deploy {
 
   def readFile(fileName: String): String =
   {
-    val fileContents = null
+    var fileContents = ""
     val source= Source.fromFile(fileName)
     try {
-      val fileContents = source.getLines.mkString
+      fileContents = source.getLines.mkString
       fileContents
     //}catch {
       //case e: FileNotFoundException => println("Couldn't find that file.")
@@ -339,11 +339,11 @@ object Deploy {
 
     if(response.code == 200)
     {
-      println("SUCCESS: Creation on Kafka of topic :" + topic )
+      println(s"SUCCESS: Creation on Kafka of topic ${'"'}${topic}${'"'}" )
     }else{
-      println("FAILURE: Issue to create on kafka topic:" + topic)
       val parseJson =Json(response.body)
-      println("FAILURE: "+ jget(parseJson, "message"))
+      val message = jget(parseJson, "message")
+      println(s"FAILURE: Cannot create topic on Kafka ${'"'}${topic}${'"'} : ${message}")
     }
 
 
