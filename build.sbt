@@ -12,7 +12,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 libraryDependencies += "com.persist" % "persist-json_2.12" % "1.2.0"
 
-
+test in assembly := {}
 
 assemblyMergeStrategy in assembly := {
   case m if m.toLowerCase.endsWith("manifest.mf")            => MergeStrategy.discard
