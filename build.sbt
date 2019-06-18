@@ -12,6 +12,10 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 libraryDependencies += "com.persist" % "persist-json_2.12" % "1.2.0"
 
+libraryDependencies ++= Seq(
+  "org.backuity.clist" %% "clist-core"   % "3.5.1",
+  "org.backuity.clist" %% "clist-macros" % "3.5.1" % "provided")
+
 test in assembly := {}
 
 assemblyMergeStrategy in assembly := {

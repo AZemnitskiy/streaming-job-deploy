@@ -100,11 +100,11 @@ object Deploy {
       .asString
 
     if(response.code == 200) {
-      println("SUCCESS: Delete topic: " + topicName)
+      println(s"SUCCESS: Delete topic ${'"'}${topicName}${'"'} ")
     }else{
-      println("FAILURE: Did not succeed to delete \""+topicName+"\"")
       val parseJson =Json(response.body)
-      println("FAILURE: "+ jget(parseJson, "message"))
+      val message = jget(parseJson, "message")
+      println(s"FAILURE: Cannot delete topic ${'"'}${topicName}${'"'} : ${message}")
     }
     response
   }
@@ -202,18 +202,11 @@ object Deploy {
         .asString
 
       if(response.code == 200) {
-        println("SUCCESS: Posting schema registry for subject: " + subject)
-       // println("Http request post response: " + response)
+        println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'}")
       }else{
-        if(response.code == 409){
-          println("FAILURE: Issue to post subject: " + subject + ". Error message below.")
-          val parseJson =Json(response.body)
-          println("FAILURE: "+ jget(parseJson, "message"))
-        }else{
-        println("FAILURE: Issue to post subject: " + subject)
-          val parseJson =Json(response.body)
-          println("FAILURE: "+ jget(parseJson, "message"))
-        }
+        val parseJson =Json(response.body)
+        val message =jget(parseJson, "message")
+        println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'}: ${message} ")
       }
       response
     }
@@ -224,20 +217,18 @@ object Deploy {
         .asString
 
       if (response.code == 200) {
-        println("Delete schema registry and all version of: " + subject)
-        //println("Http request delete response:" + response)
+        println(s"Delete schema registry and all version of: ${'"'}${subject}${'"'}")
+        response
       }else
       {
-        println("FAILURE: Issue to delete subject: " +subject)}
         val parseJson =Json(response.body)
-        println("FAILURE: "+ jget(parseJson, "message"))
+        val message =jget(parseJson, "message")
+        println(s"FAILURE: Cannot delete subject ${'"'}${subject}${'"'}: ${message} ")
         response
+      }
     }
 
 
-  //go to folder and list all folder inside folder
-  //foreach folder go inside it and get all the file
-  //Case class subject , another one version
 /*
   case class VersionContent(json: String)
   case class SubjectValue( version: Map[Int, VersionContent])
@@ -339,11 +330,11 @@ object Deploy {
 
     if(response.code == 200)
     {
-      println("SUCCESS: Creation on Kafka of topic :" + topic )
+      println(s"SUCCESS: Creation on Kafka of topic ${'"'}${topic}${'"'}" )
     }else{
-      println("FAILURE: Issue to create on kafka topic:" + topic)
       val parseJson =Json(response.body)
-      println("FAILURE: "+ jget(parseJson, "message"))
+      val message = jget(parseJson, "message")
+      println(s"FAILURE: Cannot create topic on Kafka ${'"'}${topic}${'"'} : ${message}")
     }
 
 
