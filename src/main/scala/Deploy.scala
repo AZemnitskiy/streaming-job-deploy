@@ -17,18 +17,22 @@ object Deploy {
   def main(args: Array[String] ): Unit = {
     //val path= args(1)//"C:/files/workspace_spark/streaming-jobs-workflow/"//args(0)
 
-    val myConfigFile = new File(args(0))//"C:/files/workspace_spark/Deploy/target/scala-2.12/prod.conf"
+    val myConfigFile = new File("C:/files/prod.conf")//new File(args(0))//"C:/files/prod.conf"
     val conf = ConfigFactory.parseFile(myConfigFile)
 
     val path = conf.getString("target.folder")
     val ip = conf.getString("schemas.host-ip")
     val port = conf.getInt("schemas.host-port")
-    val dirSchema = path + conf.getString("schemas.folder")
+
+    val pathFolder = new File(path)
+    val dirSchema1 =  new File(conf.getString("schemas.folder"))
+    val dirSchema =( pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
 
     val ipTopics = conf.getString("topics.host-ip")
     val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
     val portTopics = conf.getInt("topics.host-port")
-    val dirTopics = path + conf.getString("topics.folder")
+    val dirTopic1 =  new File(conf.getString("topics.folder"))
+    val dirTopics = (pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
     val clusterName = conf.getString("topics.cluster")
     val zkHosts = conf.getString("topics.zkHosts")
     val kafkaVersion = conf.getString("topics.kafkaVersion")
