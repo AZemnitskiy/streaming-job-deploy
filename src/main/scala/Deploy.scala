@@ -297,6 +297,7 @@ object Deploy {
     val fileContents = null
     val source= Source.fromFile(fileName)
     try {
+      //val regex2 = """(?s)(.*)//""".r
       val t = source.getLines.map(_.replaceAll("\\s", "").replaceAll("\"", "").split(":"))
       val res=t.map( x => (x(0),x(1))).toMap
       res
