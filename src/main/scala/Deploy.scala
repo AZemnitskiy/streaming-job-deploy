@@ -45,7 +45,7 @@ object Deploy {
     //Once Schema is registered, push topics on Kafka:
     //-if topics already exist update it
     //-if new topics, publish it
-    createOrUpdateTopics( ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
   }
 
@@ -53,25 +53,20 @@ object Deploy {
   case class SchemasConf( ip: String, port: Int, dirSchema: String)
 
 
-  def createOrUpdateTopics(ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(ip:String, port: Int, ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka
     val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:${portTopics}/topics/").mkString
     val topicsOnKafkaArray = transformHTTPGetOutputStringToArray(topicsOnKafkaString)
-    //topicsOnKafkaArray.foreach(println)
 
-   
-
-   // println("List of topics file on repository: " + listFilesTopicsFromRepo)
+   // Topic Repo
     //TODO Need to improve parsing of yml file. Basic parsing right now
     val mapTopicConf= listFilesTopicsFromRepo.map( x => (x.getName.replace(".yml",""), readFileTopic(x.toString))).toMap
     val topicRepoToBeRegistered =mapTopicConf.map(x=> x._2("topic")).toArray
 
     //Make the diff
     val diffExtraSchemaToBeRegistered = topicRepoToBeRegistered.toSet.diff(topicsOnKafkaArray.toSet)
-    //println("Topic to be registered on Kafka. (Schema has been registered): "+diffExtraSchemaToBeRegistered)
     val diffExtraTopicOnKafka = topicsOnKafkaArray.toSet.diff(topicRepoToBeRegistered.toSet)
-    //println("Extra Topic on Kafka: "+diffExtraTopicOnKafka)
     
     //if new topics, push
     if(diffExtraSchemaToBeRegistered.size!=0){
@@ -81,7 +76,18 @@ object Deploy {
           val topicName = x._2("topic")
           val partitions = x._2("partitions").toInt
           val replications = x._2("replication-factor").toInt
-          httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
+          val schema = x._2("schema")
+          //Check if schema is registered, pull it from server, through an error
+          val subjectsString = io.Source.fromURL(s"http://${ip}:${port}/subjects").mkString
+          val subjectsArray1 = transformHTTPGetOutputStringToArray( subjectsString)
+          if(subjectsArray1.contains(schema)) {
+            //else create
+            httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
+          }else
+          {
+            println(s"FAILURE: Cannot create topic ${'"'}${topicName}${'"'}, schema ${'"'}${schema}${'"'} is not registered")
+            throw new Exception(s"Cannot create topic ${'"'}${topicName}${'"'}, schema ${'"'}${schema}${'"'} is not registered")
+          }
         })
       }
     }else
@@ -100,8 +106,7 @@ object Deploy {
 
     //Delete topic if topic file is not there
     //ENFORCE A USER CONVENTION FOR TOPICS
-    //uSER.CUSTOMER -> NAME OF TOPIC, IF NOT THERE, DELETE
-    //TODO TopicToDelete is wrong!!! delete too many files because of the new notation user.customer for topic, it thinks topic is customer line 54
+    //USER.CUSTOMER -> NAME OF TOPIC, IF NOT THERE, DELETE
     val topicToDelete = diffExtraTopicOnKafka.filter( x=> x.contains("user."))
     topicToDelete.foreach( x=>httpDeletetTopic( ipTopics, portTopicsKafkaManager, clusterName, x))
   }
@@ -142,7 +147,7 @@ object Deploy {
     var mapSubjectVersionRepo = schemas_states.map(x => (x._1,x._2.map(v=>v._1).toList))
 
     val listSchemaRepoPresent =mapSubjectVersionRepo.map(x => if(x._2.length!=0){x._1}else {
-      println(s"WARNING: This folder ${x._1} is empty")
+      println(s"WARNING: This folder ${'"'}${x._1}${'"'} is empty")
       mapSubjectVersionRepo = mapSubjectVersionRepo.filterKeys(k => k!=x._1)
       schemasStatesWanted = schemasStatesWanted.filterKeys(k => k!=x._1)
     })
@@ -152,23 +157,19 @@ object Deploy {
     val diffTopicWithNoSchema = listTopics.toSet.diff(listRepoToCompareTopics.toSet)
 
     if (diffTopicWithNoSchema.size>0){
-      println("ERROR: Missing schema file for these topics:")
-      diffTopicWithNoSchema.foreach(println)
-      throw new Exception("Missing Schema for topics")
+     // println("ERROR: Missing schema file for these topics:")
+     // diffTopicWithNoSchema.foreach( x => print(s"${x} "))
+     // throw new Exception("Missing Schema for topics")
     }
     if (diffExtraSchema.size>0){
-      println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
-      diffExtraSchema.foreach( x => mapSubjectVersionRepo = mapSubjectVersionRepo.filterKeys(_!=x))
-      diffExtraSchema.foreach( x => schemasStatesWanted = schemasStatesWanted.filterKeys(_!=x))
-
+      //println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
+      //diffExtraSchema.foreach( x => mapSubjectVersionRepo = mapSubjectVersionRepo.filterKeys(_!=x))
+      //diffExtraSchema.foreach( x => schemasStatesWanted = schemasStatesWanted.filterKeys(_!=x))
     }
-    //println("REPO: List of subject and version: " + mapSubjectVersionRepo)
-    //println("REPO: List of subject and version and content: " + schemasStatesWanted)
 
     //KAFKA
     //list subject Kafka
     val subjectsString = io.Source.fromURL(s"http://${ip}:${port}/subjects").mkString
-
     val subjectsArray = transformHTTPGetOutputStringToArray( subjectsString)
 
     //if subject list is empty in Kafka
@@ -204,22 +205,22 @@ object Deploy {
     versionData.foreach( versionDataMap => {
       val t =versionDataMap._2.replace("\"", "\\\"")
       val postData ="{\"schema\": \""+ t +"\"}\n"
-      httpPostSchemaRegistry(subject, postData ,ip,port)
+      httpPostSchemaRegistry(subject, postData ,ip,port,versionData.head._1)
     } )
   }
 
-    def httpPostSchemaRegistry( subject:String, postData:String, ip:String, port:Int ): HttpResponse[String] = {
+    def httpPostSchemaRegistry( subject:String, postData:String, ip:String, port:Int, version: Int ): HttpResponse[String] = {
       val response = Http(s"http://${ip}:${port}/subjects/${subject}/versions")///post
         .header("Content-Type", "application/vnd.schemaregistry.v1+json")
         .postData(postData)
         .asString
 
       if(response.code == 200) {
-        println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'}")
+        println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository")
       }else{
         val parseJson =Json(response.body)
         val message =jget(parseJson, "message")
-        println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'}: ${message} ")
+        println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository: ${message} ")
       }
       response
     }
