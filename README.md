@@ -27,7 +27,7 @@ sbt assembly
 # Run Example
 java -jar .\Deploy.jar productionConfigFilePath 
 ````
-java -jar .\Deploy.jar "your/path/prod.conf" 
+java -jar .\Deploy.jar prod.conf 
 ````
  
 Example of prod.conf file:
@@ -55,7 +55,7 @@ jobs : {
 }
 
 target: {
-  folder: "streaming-jobs-workflow"
+  folder: "your/path/to/streaming-jobs-workflow"
 }
 ````
  
