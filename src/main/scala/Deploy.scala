@@ -92,8 +92,9 @@ object Deploy {
       }
     }else
     {
-      println("Topics already on Kafka:")
-      topicRepoToBeRegistered.foreach(x => print(s"${x} "))
+      if (topicRepoToBeRegistered.length!=0) {
+        println(s"WARNING: Topics already on Kafka: ${topicRepoToBeRegistered.mkString(", ")}")
+      }
     }
 
     //if topics already exist check if properties are the same, if yes nothing to do, else update AddPartition only allowed for now
