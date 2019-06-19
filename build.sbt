@@ -1,6 +1,7 @@
 name := "Deploy"
 
 version := "0.1"
+assemblyJarName in assembly := s"${name.value}.jar"
 
 scalaVersion := "2.12.8"
 
