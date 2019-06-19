@@ -157,7 +157,7 @@ services:
     ports:
       - "8003:8000"
     environment:
-      - "KAFKA_REST_PROXY_URL=http://rest-proxy:8084"
+      - "KAFKA_REST_PROXY_URL=http://${DOCKER_HOST_IP}rest-proxy:8084"
       - "PROXY=true"
 
   ksql-server:
@@ -173,7 +173,7 @@ services:
     # The reason we check for readiness here is that we can insert a sleep time
     # for topic creation before we start the application.
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b ${DOCKER_HOST_IP} 1 20 && \
+                       cub kafka-ready -b ${DOCKER_HOST_IP}:9092 1 20 && \
                        echo Waiting for Confluent Schema Registry to be ready... && \
                        cub sr-ready schema_registry 8081 20 && \
                        echo Waiting a few seconds for topic creation to finish... && \

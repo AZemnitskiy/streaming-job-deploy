@@ -25,9 +25,9 @@ sbt assembly
 ````
 
 # Run Example
-java -jar .\Deploy-assembly-0.1.jar productionConfigFilePath FolderLocation
+java -jar .\Deploy.jar productionConfigFilePath 
 ````
-java -jar .\Deploy-assembly-0.1.jar "your/path/prod.conf" "your/path/streaming-jobs-workflow/"
+java -jar .\Deploy.jar "your/path/prod.conf" 
 ````
  
 Example of prod.conf file:
@@ -43,7 +43,7 @@ topics : {
   host-port-kafka-manager: 8004
   host-port: 8084
   folder: "topics"
-  cluster: "myCluster"
+  cluster: "test"
   zkHosts:"zookeeper:2181"
   kafkaVersion: "0.9.0.1"
 }
@@ -52,6 +52,10 @@ jobs : {
   host-ip: "192.168.99.100"
   host-port: 8083
   folder: "topics"
+}
+
+target: {
+  folder: "streaming-jobs-workflow"
 }
 ````
  

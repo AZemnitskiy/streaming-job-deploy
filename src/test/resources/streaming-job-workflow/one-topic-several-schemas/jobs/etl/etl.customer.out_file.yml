@@ -1,0 +1,5 @@
+name=etl.customer.out_file
+connector.class=org.apache.kafka.connect.file.FileStreamSinkConnector
+file=/tmp/test/out.txt
+topics=customer
+tasks.max=1

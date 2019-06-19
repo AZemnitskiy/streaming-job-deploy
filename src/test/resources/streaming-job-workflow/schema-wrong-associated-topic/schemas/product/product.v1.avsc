@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "namespace": "com.example",
+  "name": "Product",
+  "doc": "Avro Schema for our Product",
+  "fields": [{
+    "name": "name",
+    "type": "string",
+    "doc": "First Name of Product"
+  },
+    {
+      "name": "brand",
+      "type": "string",
+      "doc": "Last Name of Product"
+    },
+    {
+      "name": "price",
+      "type": "int",
+      "doc": "Price of Product"
+    }
+  ]
+}

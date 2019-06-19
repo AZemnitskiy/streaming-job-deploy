@@ -1,0 +1,12 @@
+name=etl.customer.out_azblob
+connector.class=io.confluent.connect.azblob.AzBlobSinkConnector
+azblob.containername=test
+format.class=io.confluent.connect.azblob.format.avro.AvroFormat
+flush.size=3
+schema.compatibility=NONE
+tasks.max=1
+topics=customer
+partitioner.class=io.confluent.connect.storage.partitioner.DefaultPartitioner
+schema.generator.class=io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator
+azblob.storageaccount.connectionstring=DefaultEndpointsProtocol=https;AccountName=<?>;AccountKey=<?>;EndpointSuffix=core.windows.net
+storage.class=io.confluent.connect.azblob.storage.AzBlobStorage
