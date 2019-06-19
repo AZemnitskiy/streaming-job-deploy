@@ -1,5 +1,4 @@
 import java.io.File
-
 import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
@@ -21,26 +20,6 @@ class CreateTopicsTest extends FunSuite {
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
 
-
-//  test("Topic.CreateTopic") {
-//    println("Create Topic")
-//    //Create a topic "customer" that is not already on Kafka
-//    //Be sure to delete any topic name "customer" on Kafka on cluster "test"
-//    val dirSchema = s"${path}/extra-schema-no-topics/schemas"//conf.getString("schemas.folder")
-//    val dirTopics = s"${path}/extra-schema-no-topics/topics"
-//
-//    val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-//
-//    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-//    val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
-//    //schemaRegistered.foreach(println)
-//
-//    Deploy.createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
-//
-//    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
-//    val bool = topicString.contains("customer")
-//    assert(bool)
-//  }
 
   test("Topic.CreateTopicWitNoSchema") {
     //Create a topic with no schema, code should through an exception
@@ -89,7 +68,7 @@ class CreateTopicsTest extends FunSuite {
   }
 
   test("Topic.CreateTopicWithDifferentSchemaName") {
-    //Create a topic "user.customer" with schema product
+    //Create a topic "user.card" with schema product
     println("CreateTopic With Different Schema Name")
     val dirSchema = s"${path}/one-topic-several-schemas/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/one-topic-several-schemas/topics"
@@ -99,8 +78,9 @@ class CreateTopicsTest extends FunSuite {
 
     Deploy.createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
+    //Thread.sleep(1000)
     val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
-    val bool = topicString.contains("customer")
+    val bool = topicString.contains("card")
     assert(bool)
   }
 }
