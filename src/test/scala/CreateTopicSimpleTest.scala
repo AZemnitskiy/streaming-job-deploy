@@ -16,7 +16,8 @@ class CreateTopicSimpleTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
-
+  val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
+  val requestSchema = new HttpRequestSchema(ip, port)
 
   test("Topic.CreateTopic") {
     println("Create Topic")
@@ -27,12 +28,12 @@ class CreateTopicSimpleTest extends FunSuite {
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(ip, port, dirSchema, listFilesTopicsFromRepo)
+    //val topicString1 = requestTopic.httpGetTopicsString()
+    val schemaRegistered = registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics(requestSchema , ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")
     assert(bool)
   }
@@ -46,12 +47,12 @@ class CreateTopicSimpleTest extends FunSuite {
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(ip, port, dirSchema, listFilesTopicsFromRepo)
+    //val topicString1 = requestTopic.httpGetTopicsString()
+    val schemaRegistered = registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics(requestSchema, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")
     assert(bool)
   }

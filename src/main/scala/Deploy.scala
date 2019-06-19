@@ -15,45 +15,50 @@ object Deploy {
   """
 
   def main(args: Array[String] ): Unit = {
-    val myConfigFile = new File(args(0))
-    val conf = ConfigFactory.parseFile(myConfigFile)
+    try {
+      val myConfigFile = new File(args(0))
+      val conf = ConfigFactory.parseFile(myConfigFile)
 
-    val path = conf.getString("target.folder")
-    val ip = conf.getString("schemas.host-ip")
-    val port = conf.getInt("schemas.host-port")
+      val path = conf.getString("target.folder")
+      val ip = conf.getString("schemas.host-ip")
+      val port = conf.getInt("schemas.host-port")
 
-    val pathFolder = new File(path)
-    val dirSchema1 =  new File(conf.getString("schemas.folder"))
-    val dirSchema =( pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\","/")
+      val pathFolder = new File(path)
+      val dirSchema1 = new File(conf.getString("schemas.folder"))
+      val dirSchema = (pathFolder.getPath + File.separator + dirSchema1.getPath).replaceAll("\\\\", "/")
 
-    val ipTopics = conf.getString("topics.host-ip")
-    val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
-    val portTopics = conf.getInt("topics.host-port")
-    val dirTopic1 =  new File(conf.getString("topics.folder"))
-    val dirTopics = (pathFolder.getPath + File.separator + dirTopic1.getPath).replaceAll("\\\\","/")
-    val clusterName = conf.getString("topics.cluster")
-    val zkHosts = conf.getString("topics.zkHosts")
-    val kafkaVersion = conf.getString("topics.kafkaVersion")
+      val ipTopics = conf.getString("topics.host-ip")
+      val portTopicsKafkaManager = conf.getInt("topics.host-port-kafka-manager")
+      val portTopics = conf.getInt("topics.host-port")
+      val dirTopic1 = new File(conf.getString("topics.folder"))
+      val dirTopics = (pathFolder.getPath + File.separator + dirTopic1.getPath).replaceAll("\\\\", "/")
+      val clusterName = conf.getString("topics.cluster")
+      val zkHosts = conf.getString("topics.zkHosts")
+      val kafkaVersion = conf.getString("topics.kafkaVersion")
 
-    val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
+      val requestSchema= new HttpRequestSchema(ip,port)
 
-    //##############Register Schema #################
-    val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
-    //schemaRegistered.foreach(println)
+      val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    //##############Publish Topics #################
-    //Once Schema is registered, push topics on Kafka:
-    //-if topics already exist update it
-    //-if new topics, publish it
-    createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String,portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+      //##############Register Schema #################
+      val schemaRegistered = registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+      //schemaRegistered.foreach(println)
 
+      //##############Publish Topics #################
+      //Once Schema is registered, push topics on Kafka:
+      //-if topics already exist update it
+      //-if new topics, publish it
+      createOrUpdateTopics(requestSchema , ip, port, ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    }catch{
+      case e: Exception => println("exception caught: " + e)
+    }
   }
 
   case class TopicsConf( ip: String, portTopicsKafkaManager: Int, port: Int, folder: String, cluster: String, zkHosts: String, kafkaVersion: String)
   case class SchemasConf( ip: String, port: Int, dirSchema: String)
 
 
-  def createOrUpdateTopics(ip:String, port: Int, ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(requestSchema: HttpRequestSchema,ip:String, port: Int, ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     //Get List of topics on Kafka
     val topicsOnKafkaString = io.Source.fromURL(s"http://${ipTopics}:${portTopics}/topics/").mkString
@@ -78,7 +83,7 @@ object Deploy {
           val replications = x._2("replication-factor").toInt
           val schema = x._2("schema")
           //Check if schema is registered, pull it from server, through an error
-          val subjectsString = io.Source.fromURL(s"http://${ip}:${port}/subjects").mkString
+          val subjectsString = requestSchema.httpGetSubjectList()
           val subjectsArray1 = transformHTTPGetOutputStringToArray( subjectsString)
           if(subjectsArray1.contains(schema)) {
             //else create
@@ -129,14 +134,11 @@ object Deploy {
   }
 
   //Check the folder topics/mytopic.yml verify that a schema has been registered in schemas/mytopic/mytopic.v1.yml
-  //if yes, register the new schema to Kafka registry
-  //If not it send an error message : “Missing schema file for this topic in schemas folder”
-  //If there exist some topics in schema whithout yml file disregard and send a warning: “Topic mytopic not push to kafka as no yml file in topics associated with”
-  def registerSchema(  ip: String, port: Int, dirSchema: String, dirTopics: String) : Map[String, Map[Int, String]] ={
+  def registerSchema( requestSchema: HttpRequestSchema, ip: String, port: Int, dirSchema: String, dirTopics: String) : Map[String, Map[Int, String]] ={
     val listFilesTopics = getListOfFiles(dirTopics)
-    registerSchema(  ip, port, dirSchema, listFilesTopics)
+    registerSchema( requestSchema, ip, port, dirSchema, listFilesTopics)
   }
-  def registerSchema(  ip: String, port: Int, dirSchema: String, listFilesTopics: List[File]) : Map[String, Map[Int, String]] ={
+  def registerSchema( requestSchema: HttpRequestSchema, ip: String, port: Int, dirSchema: String, listFilesTopics: List[File]) : Map[String, Map[Int, String]] ={
     val listTopics = listFilesTopics.map(x => x.getName.replace(".yml", ""))
 
     //REPOSITORIES
@@ -157,20 +159,9 @@ object Deploy {
     val diffExtraSchema = listRepoToCompareTopics.toSet.diff(listTopics.toSet)
     val diffTopicWithNoSchema = listTopics.toSet.diff(listRepoToCompareTopics.toSet)
 
-    if (diffTopicWithNoSchema.size>0){
-     // println("ERROR: Missing schema file for these topics:")
-     // diffTopicWithNoSchema.foreach( x => print(s"${x} "))
-     // throw new Exception("Missing Schema for topics")
-    }
-    if (diffExtraSchema.size>0){
-      //println(s"WARNING:  ${diffExtraSchema} do not have corresponding topics.yml. Schema will be ignored.")
-      //diffExtraSchema.foreach( x => mapSubjectVersionRepo = mapSubjectVersionRepo.filterKeys(_!=x))
-      //diffExtraSchema.foreach( x => schemasStatesWanted = schemasStatesWanted.filterKeys(_!=x))
-    }
-
     //KAFKA
     //list subject Kafka
-    val subjectsString = io.Source.fromURL(s"http://${ip}:${port}/subjects").mkString
+    val subjectsString = requestSchema.httpGetSubjectList()
     val subjectsArray = transformHTTPGetOutputStringToArray( subjectsString)
 
     //if subject list is empty in Kafka
@@ -181,11 +172,8 @@ object Deploy {
       mapSubjectVersionKafka = listSubjectVersionKafka.map(x => (x._1, x._2.map(_.toInt)))
     }
 
-    //println("KAFKA: List of subject and version: " + mapSubjectVersionKafka) //Map[String, List[Int]]
-
     //Extra in Repo
     val diffExtraRepo : Map[String, List[Int]] = mapSubjectVersionRepo -- mapSubjectVersionKafka.keySet
-    //println("Extra in Repo: " + diffExtraRepo)
 
     //Extra in Kafka
     val diffExtraKafka : Map[String, List[Int]] = mapSubjectVersionKafka -- mapSubjectVersionRepo.keySet
@@ -195,12 +183,12 @@ object Deploy {
     diffExtraKafka.foreach( x=>httpDeletetSchemaRegistryAndAllVersion( x._1, ip, port ) )
 
     //Post any subject extra in Repo  to Kafka
-   // println("Access Map:" + schemas_states("product"))
     schemasStatesWanted.foreach( x=> httpPostSchemaRegistryForEachVersion(x._1,x._2,ip,port) )
 
-    //println("Schema State Wanted: " + schemasStatesWanted)
     schemasStatesWanted
   }
+
+
 
   def httpPostSchemaRegistryForEachVersion( subject:String, versionData:Map[Int,String], ip:String, port:Int ): Unit = {
     versionData.foreach( versionDataMap => {
