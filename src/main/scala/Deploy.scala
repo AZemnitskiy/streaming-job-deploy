@@ -91,7 +91,7 @@ object Deploy {
             val subjectsArray1 = transformHTTPGetOutputStringToArray(subjectsString)
             if (subjectsArray1.contains(schema)) {
               //else create
-              httpCreateTopicsOnKafkaAndCheckClusterExist(ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
+              requestTopic.httpCreateTopicsOnKafkaAndCheckClusterExist(zkHosts, kafkaVersion, clusterName, topicName, partitions, replications)
             } else {
               println(s"FAILURE: Cannot create topic ${'"'}${topicName}${'"'}, schema ${'"'}${schema}${'"'} is not registered")
               throw new Exception(s"Cannot create topic ${'"'}${topicName}${'"'}, schema ${'"'}${schema}${'"'} is not registered")
@@ -132,6 +132,7 @@ object Deploy {
       case e => throw new Exception(e.getMessage)
     }
   }
+
   def registerSchema( requestSchema: HttpRequestSchema, ip: String, port: Int, dirSchema: String, listFilesTopics: List[File]) : Map[String, Map[Int, String]] ={
     try {
       val listTopics = listFilesTopics.map(x => x.getName.replace(".yml", ""))
@@ -268,45 +269,6 @@ object Deploy {
       .split(",")
       .map(_.trim)
     subjectArray
-  }
-
-  def httpCreateTopicsOnKafkaAndCheckClusterExist(ip: String, port: Int, zkHosts: String, kafkaVersion: String,  clusterName: String, topic: String, partitions: Int, replication: Int) : HttpResponse[String] ={
-    var response= httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
-
-    if (response.toString.contains("Unknown cluster")) {
-      println(s"Cluster ${clusterName} is not existing. We just created it")
-      //Create Cluster
-      val responseCluster = Http(s"http://${ip}:${port}/clusters")
-        .postForm
-        .param("name",clusterName)
-        .param("zkHosts",zkHosts)//"zookeeper:2181"
-        .param("kafkaVersion",kafkaVersion)//"0.9.0.1"
-        .asString
-
-      //then post (create topic)
-      response = httpCreateTopicsOnKafka(ip, port, clusterName, topic, partitions, replication)
-    }
-
-    if(response.code == 200)
-    {
-      println(s"SUCCESS: Creation on Kafka of topic ${'"'}${topic}${'"'}" )
-    }else{
-      val parseJson =Json(response.body)
-      val message = jget(parseJson, "message")
-      println(s"FAILURE: Cannot create topic on Kafka ${'"'}${topic}${'"'} : ${message}")
-    }
-    response
-  }
-
-  def httpCreateTopicsOnKafka(ip: String, port: Int, clusterName: String, topic: String, partitions: Int, replication: Int) : HttpResponse[String] = {
-    val response = Http(s"http://${ip}:${port}/clusters/${clusterName}/topics/create")
-      .postForm
-      .param("partitions", partitions.toString)
-      .param("replication", replication.toString)
-      .param("topic", topic)
-      .asString
-
-    response
   }
 
 }

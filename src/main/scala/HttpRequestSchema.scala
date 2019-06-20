@@ -32,40 +32,45 @@ class HttpRequestSchema(ip: String, port: Int) {
   }
 
   def httpPostSchemaRegistry( subject:String, postData:String, version: Int ): HttpResponse[String] = {
-    val response = Http(s"http://${ip}:${port}/subjects/${subject}/versions")///post
-      .header("Content-Type", "application/vnd.schemaregistry.v1+json")
-      .postData(postData)
-      .asString
+    val url = s"http://${ip}:${port}/subjects/${subject}/versions"
+    try {
+      val response = Http(url) //post
+        .header("Content-Type", "application/vnd.schemaregistry.v1+json")
+        .postData(postData)
+        .asString
 
-    if(response.code == 200) {
-      println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository")
-    }else{
-      val parseJson =Json(response.body)
-      val message =jget(parseJson, "message")
-      println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository: ${message} ")
+      if (response.code == 200) {
+        println(s"SUCCESS: Posting schema registry for subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository")
+      } else {
+        val parseJson = Json(response.body)
+        val message = jget(parseJson, "message")
+        println(s"FAILURE: Cannot post subject ${'"'}${subject}${'"'} for version ${'"'}${version}${'"'} from repository: ${message} ")
+      }
+      response
+    }catch{
+      case e => throw new Exception(s"Cannot connect to ${url} . Exception message: ${'"'}${e.getMessage}${'"'}")
     }
-    response
   }
 
   def httpDeletetSchemaRegistryAndAllVersion( subject:String): HttpResponse[String] = {
-    val response = Http(s"http://${ip}:${port}/subjects/${subject}/")
-      .method("DELETE")
-      .asString
+    val url = s"http://${ip}:${port}/subjects/${subject}/"
+    try {
+      val response = Http(url)
+        .method("DELETE")
+        .asString
 
-    if (response.code == 200) {
-      println(s"Delete schema registry and all version of: ${'"'}${subject}${'"'}")
-      response
-    }else
-    {
-      val parseJson =Json(response.body)
-      val message =jget(parseJson, "message")
-      println(s"FAILURE: Cannot delete subject ${'"'}${subject}${'"'}: ${message} ")
-      response
+      if (response.code == 200) {
+        println(s"Delete schema registry and all version of: ${'"'}${subject}${'"'}")
+        response
+      } else {
+        val parseJson = Json(response.body)
+        val message = jget(parseJson, "message")
+        println(s"FAILURE: Cannot delete subject ${'"'}${subject}${'"'}: ${message} ")
+        response
+      }
+    }catch{
+      case e => throw new Exception(s"Cannot connect to ${url} . Exception message: ${'"'}${e.getMessage}${'"'}")
     }
   }
-
-
-
-
 
 }
