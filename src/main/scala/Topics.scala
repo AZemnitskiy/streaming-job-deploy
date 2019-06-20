@@ -1,4 +1,6 @@
 import java.io.File
+import java.net.ConnectException
+
 import FilesUtils.{readFileTopic, transformHTTPGetOutputStringToArray}
 
 class Topics( ipTopics: String,
@@ -65,7 +67,7 @@ class Topics( ipTopics: String,
       val topicToDelete = diffExtraTopicOnKafka.filter(x => x.contains("user."))
       topicToDelete.foreach(x => requestTopic.httpDeletetTopic( clusterName, x))
     }catch{
-      case e => throw new Exception(e.getMessage)
+      case e: ConnectException => throw new Exception(e.getMessage)
     }
   }
 
