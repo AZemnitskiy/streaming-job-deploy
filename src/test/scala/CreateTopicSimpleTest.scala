@@ -1,7 +1,7 @@
 import java.io.File
-import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
+import FilesUtils._
 
 class CreateTopicSimpleTest extends FunSuite {
   val pathCreating = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "streaming-job-workflow"
@@ -16,7 +16,8 @@ class CreateTopicSimpleTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
-
+  val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
+  val requestSchema = new HttpRequestSchema(ip, port)
 
   test("Topic.CreateTopic") {
     println("Create Topic")
@@ -24,15 +25,17 @@ class CreateTopicSimpleTest extends FunSuite {
     //Be sure to delete any topic name "customer" on Kafka on cluster "test"
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(ip, port, dirSchema, listFilesTopicsFromRepo)
+    //val topicString1 = requestTopic.httpGetTopicsString()
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString().toString
     val bool = topicString.contains("customer")
     assert(bool)
   }
@@ -43,15 +46,17 @@ class CreateTopicSimpleTest extends FunSuite {
     //Be sure to delete any topic name "customer" on Kafka on cluster "test"
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(ip, port, dirSchema, listFilesTopicsFromRepo)
+    //val topicString1 = requestTopic.httpGetTopicsString()
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")
     assert(bool)
   }

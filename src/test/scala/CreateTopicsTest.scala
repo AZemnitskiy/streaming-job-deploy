@@ -1,7 +1,7 @@
 import java.io.File
-import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
+import FilesUtils._
 
 class CreateTopicsTest extends FunSuite {
   //TODO path
@@ -19,7 +19,8 @@ class CreateTopicsTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
-
+  val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
+  val requestSchema = new HttpRequestSchema(ip, port)
 
   test("Topic.CreateTopicWitNoSchema") {
     //Create a topic with no schema, code should through an exception
@@ -27,20 +28,22 @@ class CreateTopicsTest extends FunSuite {
     println("Create Topic With No Schema")
     val dirSchema = s"${path}/missing-schema-for-topics/schemas"
     val dirTopics = s"${path}/missing-schema-for-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(ip, port, dirSchema, listFilesTopicsFromRepo)
+    //val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics(ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains("Cannot create topic"))
 
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     assert(!topicString.contains("user.shampoo")) //TODO WHY THIS TEST DOES NOT SEND AN ERROR OR WARNONG AS NO SCHEMA REGISTRY???
   }
 
@@ -50,20 +53,21 @@ class CreateTopicsTest extends FunSuite {
     println("Create Topic Wrong Schema")
     val dirSchema = s"${path}/schema-wrong-associated-topic/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/schema-wrong-associated-topic/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered =schemas.registerSchema( requestSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains( "Cannot create topic" ))
 
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     assert(!topicString.contains("user.client"))
   }
 
@@ -72,14 +76,16 @@ class CreateTopicsTest extends FunSuite {
     println("CreateTopic With Different Schema Name")
     val dirSchema = s"${path}/one-topic-several-schemas/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/one-topic-several-schemas/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered =registerSchema( ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered =schemas.registerSchema( requestSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics( ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
 
-    //Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    Thread.sleep(1000)
+    val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("card")
     assert(bool)
   }
