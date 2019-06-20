@@ -19,7 +19,7 @@ class CreateTopicsTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
-
+  val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
   val requestSchema = new HttpRequestSchema(ip, port)
 
   test("Topic.CreateTopicWitNoSchema") {
@@ -36,12 +36,12 @@ class CreateTopicsTest extends FunSuite {
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics(requestSchema,ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        Deploy.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains("Cannot create topic"))
 
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     assert(!topicString.contains("user.shampoo")) //TODO WHY THIS TEST DOES NOT SEND AN ERROR OR WARNONG AS NO SCHEMA REGISTRY???
   }
 
@@ -53,18 +53,16 @@ class CreateTopicsTest extends FunSuite {
     val dirTopics = s"${path}/schema-wrong-associated-topic/topics"
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
     val schemaRegistered =registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics( requestSchema,ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        Deploy.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains( "Cannot create topic" ))
 
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    val topicString = requestTopic.httpGetTopicsString()
     assert(!topicString.contains("user.client"))
   }
 
@@ -74,13 +72,12 @@ class CreateTopicsTest extends FunSuite {
     val dirSchema = s"${path}/one-topic-several-schemas/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/one-topic-several-schemas/topics"
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
     val schemaRegistered =registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(requestSchema, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
-    //Thread.sleep(1000)
-    val topicString = io.Source.fromURL(s"http://${ipTopics}:8084/topics/").mkString
+    Thread.sleep(1000)
+    val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("card")
     assert(bool)
   }

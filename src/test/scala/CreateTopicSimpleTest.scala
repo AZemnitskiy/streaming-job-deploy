@@ -31,9 +31,9 @@ class CreateTopicSimpleTest extends FunSuite {
     //val topicString1 = requestTopic.httpGetTopicsString()
     val schemaRegistered = registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(requestSchema , ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics(requestSchema , requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
-    val topicString = requestTopic.httpGetTopicsString()
+    val topicString = requestTopic.httpGetTopicsString().toString
     val bool = topicString.contains("customer")
     assert(bool)
   }
@@ -50,7 +50,7 @@ class CreateTopicSimpleTest extends FunSuite {
     //val topicString1 = requestTopic.httpGetTopicsString()
     val schemaRegistered = registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(requestSchema, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    Deploy.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")

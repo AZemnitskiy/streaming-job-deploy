@@ -1,3 +1,6 @@
+import com.persist.JsonOps.{Json, jget}
+import scalaj.http.{Http, HttpResponse}
+
 class HttpRequestTopic( ipTopics: String, portTopicsKafkaManager: Int, portTopics: Int) {
 
   def httpGetTopicsString():String= {
@@ -9,4 +12,19 @@ class HttpRequestTopic( ipTopics: String, portTopicsKafkaManager: Int, portTopic
     }
   }
 
+  def httpDeletetTopic( clusterName:String, topicName: String ): HttpResponse[String] = {
+    val response = Http(s"http://${ipTopics}:${portTopicsKafkaManager.toString}/clusters/${clusterName}/topics/delete?t=${topicName}")
+      .postForm
+      .param("topic",topicName)
+      .asString
+
+    if(response.code == 200) {
+      println(s"SUCCESS: Delete topic ${'"'}${topicName}${'"'} ")
+    }else{
+      val parseJson =Json(response.body)
+      val message = jget(parseJson, "message")
+      println(s"FAILURE: Cannot delete topic ${'"'}${topicName}${'"'} : ${message}")
+    }
+    response
+  }
 }
