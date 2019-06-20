@@ -1,3 +1,4 @@
+import java.net.ConnectException
 import com.persist.JsonOps.{Json, jget}
 import scalaj.http.{Http, HttpResponse}
 
@@ -8,7 +9,7 @@ class HttpRequestTopic( ipTopics: String, portTopicsKafkaManager: Int, portTopic
     try{
       io.Source.fromURL(url).mkString
     }catch{
-      case e => throw new Exception(s"Cannot connect to ${url}. Exception message: ${'"'}${e.getMessage}${'"'}")
+      case e: ConnectException => throw new Exception(s"Cannot connect to ${url}. Exception message: ${'"'}${e.getMessage}${'"'}")
     }
   }
 
@@ -29,7 +30,7 @@ class HttpRequestTopic( ipTopics: String, portTopicsKafkaManager: Int, portTopic
       }
       response
    }catch {
-     case e => throw new Exception(s"Cannot connect to ${url}. Exception message: ${'"'}${e.getMessage}${'"'}")
+     case e: ConnectException => throw new Exception(s"Cannot connect to ${url}. Exception message: ${'"'}${e.getMessage}${'"'}")
    }
   }
 

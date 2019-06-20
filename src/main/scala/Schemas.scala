@@ -1,4 +1,6 @@
 import java.io.File
+import java.net.ConnectException
+
 import FilesUtils._
 
 
@@ -10,7 +12,7 @@ class Schemas ( val ip: String, val port: Int, val dirSchema: String) {
       val listFilesTopics = getListOfFiles(dirTopics)
       registerSchema(requestSchema, listFilesTopics)
     }catch{
-      case e => throw new Exception(e.getMessage)
+      case e: ConnectException => throw new Exception(e.getMessage)
     }
   }
 
@@ -66,7 +68,7 @@ class Schemas ( val ip: String, val port: Int, val dirSchema: String) {
 
       schemasStatesWanted
     }catch{
-      case e => throw new Exception(e.getMessage)
+      case e: ConnectException => throw new Exception(e.getMessage)
     }
   }
 

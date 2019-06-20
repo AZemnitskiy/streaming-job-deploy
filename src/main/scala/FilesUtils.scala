@@ -39,7 +39,7 @@ object FilesUtils {
   }
   def readFileTopic(fileName: String): Map[String, String ] =
   {
-    val fileContents = null
+    //val fileContents = null
     val source= Source.fromFile(fileName)
     try {
       //val regex2 = """(?s)(.*)//""".r
@@ -48,7 +48,7 @@ object FilesUtils {
       res
     }finally {
       source.close() //closing file in JVM
-      fileContents
+      //fileContents
     }
   }
 
