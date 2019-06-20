@@ -1,7 +1,7 @@
 import java.io.File
-import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
+import FilesUtils._
 
 class CreateTopicsTest extends FunSuite {
   //TODO path
@@ -28,15 +28,17 @@ class CreateTopicsTest extends FunSuite {
     println("Create Topic With No Schema")
     val dirSchema = s"${path}/missing-schema-for-topics/schemas"
     val dirTopics = s"${path}/missing-schema-for-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains("Cannot create topic"))
@@ -51,13 +53,16 @@ class CreateTopicsTest extends FunSuite {
     println("Create Topic Wrong Schema")
     val dirSchema = s"${path}/schema-wrong-associated-topic/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/schema-wrong-associated-topic/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val schemaRegistered =registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered =schemas.registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        Deploy.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains( "Cannot create topic" ))
@@ -71,10 +76,13 @@ class CreateTopicsTest extends FunSuite {
     println("CreateTopic With Different Schema Name")
     val dirSchema = s"${path}/one-topic-several-schemas/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/one-topic-several-schemas/topics"
-    val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val schemaRegistered =registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
-    Deploy.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
+    val schemaRegistered =schemas.registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+
+    topics.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
 
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString()

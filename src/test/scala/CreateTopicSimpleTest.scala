@@ -1,7 +1,7 @@
 import java.io.File
-import Deploy.{getListOfFiles, registerSchema}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
+import FilesUtils._
 
 class CreateTopicSimpleTest extends FunSuite {
   val pathCreating = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test" + File.separator + "resources" + File.separator + "streaming-job-workflow"
@@ -25,13 +25,15 @@ class CreateTopicSimpleTest extends FunSuite {
     //Be sure to delete any topic name "customer" on Kafka on cluster "test"
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = requestTopic.httpGetTopicsString()
-    val schemaRegistered = registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(requestSchema , requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema , requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString().toString
     val bool = topicString.contains("customer")
@@ -44,13 +46,15 @@ class CreateTopicSimpleTest extends FunSuite {
     //Be sure to delete any topic name "customer" on Kafka on cluster "test"
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = requestTopic.httpGetTopicsString()
-    val schemaRegistered = registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
 
-    Deploy.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")

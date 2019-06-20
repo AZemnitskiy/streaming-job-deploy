@@ -18,9 +18,9 @@ class SchemaRegistryTest extends FunSuite {
     //Added topics shampoo.yml,but no schema file for it
     val dirSchema = s"${path}/missing-schema-for-topics/schemas"
     val dirTopics = s"${path}/missing-schema-for-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
 
-
-    Deploy.registerSchema(requestSchema, ip, port, dirSchema, dirTopics)
+    schemas.registerSchema(requestSchema, ip, port, dirSchema, dirTopics)
 
     val subjectsString = requestSchema.httpGetSubjectList()
     assert(subjectsString.contains("customer"))
@@ -39,8 +39,9 @@ class SchemaRegistryTest extends FunSuite {
     val port = conf.getInt("schemas.host-port")
     val dirSchema = s"${path}/extra-schema-no-topics/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
+    val schemas = new Schemas ( ip, port, dirSchema)
 
-    Deploy.registerSchema( requestSchema, ip, port, dirSchema, dirTopics)
+    schemas.registerSchema( requestSchema, ip, port, dirSchema, dirTopics)
     val subjectsString = requestSchema.httpGetSubjectList()//io.Source.fromURL(s"http://${ip}:${port}/subjects").mkString
 
     assert(subjectsString.contains("product"))
