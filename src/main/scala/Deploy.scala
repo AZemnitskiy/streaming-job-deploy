@@ -46,13 +46,13 @@ object Deploy {
       val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
       //##############Register Schema #################
-      val schemaRegistered = schemas.registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+      val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
       //##############Publish Topics #################
       //Once Schema is registered, push topics on Kafka:
       //-if topics already exist update it
       //-if new topics, publish it
-      topics.createOrUpdateTopics(requestSchema , requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts: String, kafkaVersion: String, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+      topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
     }catch{
       case e: Exception => {println("exception caught: " + e.getMessage)
                             System.exit(-1)
@@ -61,8 +61,8 @@ object Deploy {
     }
   }
 
-  case class TopicsConf( ip: String, portTopicsKafkaManager: Int, port: Int, folder: String, cluster: String, zkHosts: String, kafkaVersion: String)
-  case class SchemasConf( ip: String, port: Int, dirSchema: String)
+
+
 
 
 

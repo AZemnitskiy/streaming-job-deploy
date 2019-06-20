@@ -1,20 +1,20 @@
 import java.io.File
 import FilesUtils._
 
-class Schemas ( ip: String, port: Int, dirSchema: String) {
 
+class Schemas ( val ip: String, val port: Int, val dirSchema: String) {
 
   //Check the folder topics/mytopic.yml verify that a schema has been registered in schemas/mytopic/mytopic.v1.yml
-  def registerSchema( requestSchema: HttpRequestSchema, ip: String, port: Int, dirSchema: String, dirTopics: String) : Map[String, Map[Int, String]] ={
+  def registerSchema( requestSchema: HttpRequestSchema, dirTopics: String) : Map[String, Map[Int, String]] ={
     try {
       val listFilesTopics = getListOfFiles(dirTopics)
-      registerSchema(requestSchema, ip, port, dirSchema, listFilesTopics)
+      registerSchema(requestSchema, listFilesTopics)
     }catch{
       case e => throw new Exception(e.getMessage)
     }
   }
 
-  def registerSchema( requestSchema: HttpRequestSchema, ip: String, port: Int, dirSchema: String, listFilesTopics: List[File]) : Map[String, Map[Int, String]] ={
+  def registerSchema( requestSchema: HttpRequestSchema, listFilesTopics: List[File]) : Map[String, Map[Int, String]] ={
     try {
       val listTopics = listFilesTopics.map(x => x.getName.replace(".yml", ""))
 

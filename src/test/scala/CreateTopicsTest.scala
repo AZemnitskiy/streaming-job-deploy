@@ -34,11 +34,11 @@ class CreateTopicsTest extends FunSuite {
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = io.Source.fromURL(s"http://${ip}:8084/topics/").mkString
-    val schemaRegistered = schemas.registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        topics.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains("Cannot create topic"))
@@ -58,11 +58,11 @@ class CreateTopicsTest extends FunSuite {
 
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val schemaRegistered =schemas.registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered =schemas.registerSchema( requestSchema, listFilesTopicsFromRepo)
 
     val caught =
       intercept[Exception] { // Result type: IndexOutOfBoundsException
-        topics.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+        topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
       }
     println("")
     assert(caught.getMessage.contains( "Cannot create topic" ))
@@ -80,9 +80,9 @@ class CreateTopicsTest extends FunSuite {
     val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
-    val schemaRegistered =schemas.registerSchema( requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered =schemas.registerSchema( requestSchema, listFilesTopicsFromRepo)
 
-    topics.createOrUpdateTopics( requestSchema,requestTopic, ip, port, ipTopics, portTopicsKafkaManager,zkHosts, kafkaVersion,  portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
 
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString()

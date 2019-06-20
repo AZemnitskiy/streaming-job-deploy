@@ -31,9 +31,9 @@ class CreateTopicSimpleTest extends FunSuite {
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = requestTopic.httpGetTopicsString()
-    val schemaRegistered = schemas.registerSchema(requestSchema,ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
-    topics.createOrUpdateTopics(requestSchema , requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString().toString
     val bool = topicString.contains("customer")
@@ -52,9 +52,9 @@ class CreateTopicSimpleTest extends FunSuite {
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
     //val topicString1 = requestTopic.httpGetTopicsString()
-    val schemaRegistered = schemas.registerSchema(requestSchema, ip, port, dirSchema, listFilesTopicsFromRepo)
+    val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
-    topics.createOrUpdateTopics(requestSchema, requestTopic, ip, port, ipTopics, portTopicsKafkaManager, zkHosts, kafkaVersion, portTopics, dirSchema, dirTopics, clusterName, listFilesTopicsFromRepo, schemaRegistered)
+    topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
     Thread.sleep(1000)
     val topicString = requestTopic.httpGetTopicsString()
     val bool = topicString.contains("customer")

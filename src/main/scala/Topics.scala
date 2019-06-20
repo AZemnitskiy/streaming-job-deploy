@@ -1,10 +1,15 @@
 import java.io.File
-
 import FilesUtils.{readFileTopic, transformHTTPGetOutputStringToArray}
 
-class Topics( ipTopics: String, portTopicsKafkaManager: Int, portTopics: Int, folder: String, cluster: String, zkHosts: String, kafkaVersion: String) {
+class Topics( ipTopics: String,
+              portTopicsKafkaManager: Int,
+              portTopics: Int,
+              dirTopics: String,
+              clusterName: String,
+              zkHosts: String,
+              kafkaVersion: String)  {
 
-  def createOrUpdateTopics(requestSchema: HttpRequestSchema, requestTopic: HttpRequestTopic, ip:String, port: Int, ipTopics: String, portTopicsKafkaManager: Int, zkHosts: String, kafkaVersion: String,portTopics: Int, dirSchema: String, dirTopics: String, clusterName: String, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
+  def createOrUpdateTopics(requestSchema: HttpRequestSchema, requestTopic: HttpRequestTopic, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
     try {
       //Get List of topics on Kafka
