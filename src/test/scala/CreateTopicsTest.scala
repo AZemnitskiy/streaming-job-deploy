@@ -19,6 +19,7 @@ class CreateTopicsTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
+  val prefix = conf.getString("topics.prefix")
   val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
   val requestSchema = new HttpRequestSchema(ip, port)
 
@@ -29,7 +30,7 @@ class CreateTopicsTest extends FunSuite {
     val dirSchema = s"${path}/missing-schema-for-topics/schemas"
     val dirTopics = s"${path}/missing-schema-for-topics/topics"
     val schemas = new Schemas ( ip, port, dirSchema)
-    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion, prefix)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
@@ -54,7 +55,7 @@ class CreateTopicsTest extends FunSuite {
     val dirSchema = s"${path}/schema-wrong-associated-topic/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/schema-wrong-associated-topic/topics"
     val schemas = new Schemas ( ip, port, dirSchema)
-    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion,prefix)
 
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
@@ -77,7 +78,7 @@ class CreateTopicsTest extends FunSuite {
     val dirSchema = s"${path}/one-topic-several-schemas/schemas"//conf.getString("schemas.folder")
     val dirTopics = s"${path}/one-topic-several-schemas/topics"
     val schemas = new Schemas ( ip, port, dirSchema)
-    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion, prefix)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
     val schemaRegistered =schemas.registerSchema( requestSchema, listFilesTopicsFromRepo)

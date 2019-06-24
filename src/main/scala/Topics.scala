@@ -9,7 +9,8 @@ class Topics( ipTopics: String,
               dirTopics: String,
               clusterName: String,
               zkHosts: String,
-              kafkaVersion: String)  {
+              kafkaVersion: String,
+              prefix: String)  {
 
   def createOrUpdateTopics(requestSchema: HttpRequestSchema, requestTopic: HttpRequestTopic, listFilesTopicsFromRepo: List[File], schemaRegistered : Map[String, Map[Int,String]]) : Unit=
   {
@@ -20,7 +21,7 @@ class Topics( ipTopics: String,
 
       // Topic Repo
       val mapTopicConf = listFilesTopicsFromRepo.map(x => (x.getName.replace(".yml", ""), readFileTopic(x.toString))).toMap
-      val topicRepoToBeRegistered = mapTopicConf.map(x => x._2("topic")).toArray
+      val topicRepoToBeRegistered = mapTopicConf.map(x => s"${prefix}${x._2("topic")}").toArray
 
       //Make the diff
       val diffExtraSchemaToBeRegistered = topicRepoToBeRegistered.toSet.diff(topicsOnKafkaArray.toSet)
@@ -31,7 +32,7 @@ class Topics( ipTopics: String,
         val mapNewTopicToCreatOnKafka = mapTopicConf.filterNot(x => x._1.contains(diffExtraSchemaToBeRegistered))
         if (mapNewTopicToCreatOnKafka.keySet.size != 0) {
           mapNewTopicToCreatOnKafka.foreach(x => {
-            val topicName = x._2("topic")
+            val topicName = s"${prefix}${x._2("topic")}"
             val partitions = x._2("partitions").toInt
             val replications = x._2("replication-factor").toInt
             val schema = x._2("schema")
@@ -63,7 +64,7 @@ class Topics( ipTopics: String,
       //Delete topic if topic file is not there
       //ENFORCE A USER CONVENTION FOR TOPICS
       //USER.CUSTOMER -> NAME OF TOPIC, IF NOT THERE, DELETE
-      val topicToDelete = diffExtraTopicOnKafka.filter(x => x.contains("user."))
+      val topicToDelete = diffExtraTopicOnKafka.filter(x => x.contains(prefix))
       topicToDelete.foreach(x => requestTopic.httpDeletetTopic( clusterName, x))
     }catch{
       case e: ConnectException => throw new Exception(e.getMessage)

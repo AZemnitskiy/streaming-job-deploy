@@ -30,12 +30,13 @@ object Deploy {
       val clusterName = conf.getString("topics.cluster")
       val zkHosts = conf.getString("topics.zkHosts")
       val kafkaVersion = conf.getString("topics.kafkaVersion")
+      val prefix = conf.getString("topics.prefix")
 
       val requestSchema= new HttpRequestSchema(ip,port)
       val requestTopic= new HttpRequestTopic(ipTopics,portTopicsKafkaManager, portTopics)
 
       val schemas = new Schemas ( ip, port, dirSchema)
-      val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+      val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion, prefix)
 
       val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
