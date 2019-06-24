@@ -19,7 +19,6 @@ class Topics( ipTopics: String,
       val topicsOnKafkaArray = transformHTTPGetOutputStringToArray(topicsOnKafkaString)
 
       // Topic Repo
-      //TODO Need to improve parsing of yml file. Basic parsing right now
       val mapTopicConf = listFilesTopicsFromRepo.map(x => (x.getName.replace(".yml", ""), readFileTopic(x.toString))).toMap
       val topicRepoToBeRegistered = mapTopicConf.map(x => x._2("topic")).toArray
 

@@ -1,12 +1,6 @@
 import java.io.File
-
-import com.persist.JsonOps._
 import com.typesafe.config.ConfigFactory
-import scalaj.http.{Http, HttpResponse}
-
-import scala.io.Source
 import FilesUtils._
-
 
 
 object Deploy {

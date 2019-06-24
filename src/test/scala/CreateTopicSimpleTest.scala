@@ -30,7 +30,6 @@ class CreateTopicSimpleTest extends FunSuite {
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    //val topicString1 = requestTopic.httpGetTopicsString()
     val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
     topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
