@@ -16,6 +16,8 @@ class CreateTopicSimpleTest extends FunSuite {
   val clusterName = conf.getString("topics.cluster")
   val zkHosts = conf.getString("topics.zkHosts")
   val kafkaVersion = conf.getString("topics.kafkaVersion")
+  val prefix = conf.getString("topics.prefix")
+
   val requestTopic = new HttpRequestTopic(ipTopics,portTopicsKafkaManager,portTopics)
   val requestSchema = new HttpRequestSchema(ip, port)
 
@@ -26,11 +28,10 @@ class CreateTopicSimpleTest extends FunSuite {
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
     val schemas = new Schemas ( ip, port, dirSchema)
-    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion, prefix)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 
-    //val topicString1 = requestTopic.httpGetTopicsString()
     val schemaRegistered = schemas.registerSchema(requestSchema, listFilesTopicsFromRepo)
 
     topics.createOrUpdateTopics(requestSchema, requestTopic, listFilesTopicsFromRepo, schemaRegistered)
@@ -47,7 +48,7 @@ class CreateTopicSimpleTest extends FunSuite {
     val dirSchema = s"${path}/extra-schema-no-topics/schemas" //conf.getString("schemas.folder")
     val dirTopics = s"${path}/extra-schema-no-topics/topics"
     val schemas = new Schemas ( ip, port, dirSchema)
-    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion)
+    val topics = new Topics ( ipTopics, portTopicsKafkaManager, portTopics, dirTopics, clusterName, zkHosts, kafkaVersion, prefix)
 
     val listFilesTopicsFromRepo = getListOfFiles(dirTopics)
 

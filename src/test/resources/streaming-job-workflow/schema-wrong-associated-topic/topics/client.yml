@@ -1,4 +1,4 @@
-topic: "user.client"
+topic: "client"
 replication-factor: 1
 partitions: 2
 schema:  "client"

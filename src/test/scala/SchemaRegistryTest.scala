@@ -1,5 +1,4 @@
 import java.io.File
-
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSuite
 
@@ -9,9 +8,8 @@ class SchemaRegistryTest extends FunSuite {
   val conf = ConfigFactory.load()
   val ip = conf.getString("schemas.host-ip")
   val port = conf.getInt("schemas.host-port")
-
-
   val requestSchema = new HttpRequestSchema(ip, port )
+
   test("SchemaRegistry.MissingSchemaTopicsYMLPresent") {
     //All schema present need to be register if they can
     println("MissingSchemaTopicsYMLPresent")

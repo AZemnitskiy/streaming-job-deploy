@@ -42,9 +42,16 @@ object FilesUtils {
     //val fileContents = null
     val source= Source.fromFile(fileName)
     try {
-      //val regex2 = """(?s)(.*)//""".r
-      val t = source.getLines.map(_.replaceAll("\\s", "").replaceAll("\"", "").split(":"))
-      val res=t.map( x => (x(0),x(1))).toMap
+      val regex2 = """(?s)(.*)#""".r//ignore comment beginning with #
+
+      val resIteratorArray =
+        source.getLines.filter(x=> !(x.take(1)=="#"))//Remove line with only comment
+          .map( x => regex2.findFirstIn(x).getOrElse(x).replaceAll("#","") //Get ride of comment
+          .replaceAll("\\s", "") //Get ride of white spaces
+          .replaceAll("\"", "") //Get ride of quotes
+          .split(":"))
+
+      val res=resIteratorArray.map( x => (x(0),x(1))).toMap
       res
     }finally {
       source.close() //closing file in JVM
